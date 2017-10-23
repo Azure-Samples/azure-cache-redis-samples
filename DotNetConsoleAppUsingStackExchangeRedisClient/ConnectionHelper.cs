@@ -1,49 +1,57 @@
 ﻿using System;
 using System.Threading;
-using DotNetConsoleAppUsingStackExchangeRedisClient;
 using StackExchange.Redis;
 
-namespace HelloWorld
+namespace DotNetConsoleAppUsingStackExchangeRedisClient
 {
     /// <summary>
-    /// Wrapper of ConnectionMultiplexer support force reconnect when RedisConnectionException happend. 
+    /// ConnectinHelper to support force reconnect when RedisConnectionException happend. 
     /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
-    class ReconnectionMultiplexer
+    public static class ConnectionHelper
     {
-        private ConnectionMultiplexer connectionMultiplexer;
-        private DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
-        private DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
+        private static DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
+        private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
 
-        private DateTimeOffset previousErrorTime = DateTimeOffset.MinValue;
+        private static DateTimeOffset previousErrorTime = DateTimeOffset.MinValue;
 
         // In general, let StackExchange.Redis handle most reconnects, 
         // so limit the frequency of how often this will actually reconnect.
-        public readonly TimeSpan reconnectMinFrequency;
+        public static TimeSpan reconnectMinFrequency;
 
         // if errors continue for longer than the below threshold, then the 
         // multiplexer seems to not be reconnecting, so re-create the multiplexer
-        public readonly TimeSpan reconnectErrorThreshold;
+        public static TimeSpan reconnectErrorThreshold;
 
-        private readonly object reconnectLock = new object();
-        private readonly ConfigurationOptions configuration;
+        private static readonly object reconnectLock = new object();
+        private static ConfigurationOptions configuration;
 
-        public ReconnectionMultiplexer(ConfigurationOptions configuration, int reconnectInterval = 10,
+        private static Lazy<ConnectionMultiplexer> multiplexer;
+
+        public static ConnectionMultiplexer Connection { get { return multiplexer.Value; } }
+
+
+        // Call this method before get Connection
+        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectInterval = 10,
             int reconnectErrorThreshold = 5)
         {
-            this.configuration = configuration;
-            this.configuration.AbortOnConnectFail = false;
-            this.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectInterval);
-            this.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThreshold);
-            CreateMultiplexer();
+            ConnectionHelper.configuration = configuration;
+            ConnectionHelper.configuration.AbortOnConnectFail = false;
+            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectInterval);
+            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThreshold);
+            multiplexer = CreateMultiplexer();
         }
 
-        public ConnectionMultiplexer GetMultiplexer()
-        { 
-            return connectionMultiplexer;
-        }
-
-        public void ForceReconnect()
+        /// <summary>
+        /// Force a new ConnectionMultiplexer to be created.  
+        /// NOTES: 
+        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnect()
+        ///     2. Don't call ForceReconnect for Timeouts, just for RedisConnectionExceptions
+        ///     3. Call this method every time you see a connection exception, the code will wait to reconnect:
+        ///         a. for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
+        ///         b. not reconnect more frequently than configured in "ReconnectMinFrequency"
+        /// </summary>   
+        public static void ForceReconnect()
         {
             var previousReconnect = lastReconnectTime;
             var elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnect;
@@ -82,25 +90,23 @@ namespace HelloWorld
 
                     if (shouldReconnect)
                     {
-                        LogUtility.LogInfo($"ForceReconnect: now: {now.ToString()}");
-                        LogUtility.LogInfo($"ForceReconnect: elapsedSinceLastReconnect: {elapsedSinceLastReconnect.ToString()}, ReconnectFrequency: {reconnectMinFrequency.ToString()}");
-                        LogUtility.LogInfo($"ForceReconnect: elapsedSinceFirstError: {elapsedSinceFirstError.ToString()}, elapsedSinceMostRecentError: {elapsedSinceMostRecentError.ToString()}, ReconnectErrorThreshold: {reconnectErrorThreshold.ToString()}");
+                        LogUtility.LogInfo(
+                            "ForceReconnect at {0:dd\\.hh\\:mm\\:ss}, elapsedSinceFirstError: {1}, elapsedSinceMostRecentError at {2}", now, elapsedSinceFirstError.Seconds, elapsedSinceMostRecentError.Seconds);
                         firstErrorTime = DateTimeOffset.MinValue;
                         previousErrorTime = DateTimeOffset.MinValue;
                         lastReconnectTime = now;
-                        CloseMultiplexer(connectionMultiplexer);
-                        CreateMultiplexer();
+                        CloseMultiplexer(multiplexer);
+                        multiplexer = CreateMultiplexer();
                     } else
                     {
-                        
                         LogUtility.LogInfo(
-                            "Reconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
+                            "ForceReconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
                             firstErrorTime, previousErrorTime, lastReconnectTime);
 
                         // Put thread to sleep to avoid busy wait
                         if (elapsedSinceFirstError < reconnectErrorThreshold)
                         {
-                            LogUtility.LogInfo("Reconnect delay due to error threshold, sleep {0} seconds",
+                            LogUtility.LogInfo("ForceReconnect delay due to error threshold, sleep {0} seconds",
                                 (reconnectErrorThreshold - elapsedSinceFirstError).Seconds);
                             Thread.Sleep(reconnectErrorThreshold - elapsedSinceFirstError);
                         }
@@ -117,30 +123,34 @@ namespace HelloWorld
 
                 // Put thread to sleep to avoid busy wait
                 LogUtility.LogInfo(
-                    "Reconnect delay due to min frequency, sleep {0} seconds, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
+                    "ForceReconnect delay due to min frequency, sleep {0} seconds, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
                     (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
                 Thread.Sleep(reconnectMinFrequency - elapsedSinceLastReconnect);
             }
         }
 
-        private void CreateMultiplexer()
+        private static Lazy<ConnectionMultiplexer> CreateMultiplexer()
         {
-            connectionMultiplexer = ConnectionMultiplexer.Connect(configuration);
             lastReconnectTime = DateTimeOffset.UtcNow;
+            return new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(configuration));
         }
 
-        private void CloseMultiplexer(ConnectionMultiplexer multiplexer)
+        private static void CloseMultiplexer(Lazy<ConnectionMultiplexer> multiplexer)
         {
+            if (multiplexer == null)
+            {
+                return;
+            }
 
             try
             {
-                LogUtility.LogInfo("closing old multiplexer.");
-                multiplexer.Close();
+                LogUtility.LogInfo("ForceConnect to close old multiplexer...");
+                multiplexer.Value.Close();
+                LogUtility.LogInfo("ForceConnect closed old multiplexer");
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Example error condition: if accessing old.Value causes a connection attempt and that fails.
-                // TODO: log exception
+                LogUtility.LogError("Exception when closing old multiplexer {0}.", e);
             }
         }
     }
