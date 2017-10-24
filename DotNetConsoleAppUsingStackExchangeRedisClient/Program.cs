@@ -10,6 +10,7 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
     {
         public static void Main(string[] args)
         {
+            InitLogger();
             InitConnectionHelper();
             var key = "key";
             var value = "value";
@@ -62,14 +63,19 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
         private static void InitConnectionHelper()
         {
             ConfigurationOptions config = new ConfigurationOptions();
-            config.EndPoints.Add(ConfigurationManager.AppSettings["RedisCacheName"]);
+            config.EndPoints.Add(ConfigurationManager.AppSettings["RedisCacheHostName"]);
             config.Password = ConfigurationManager.AppSettings["RedisCachePassword"];
             config.Ssl = bool.Parse(ConfigurationManager.AppSettings["enableSsl"]);
             config.AbortOnConnectFail = false;
             config.ConnectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
-            config.ConnectTimeout = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeout"]);
+            config.ConnectTimeout = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
             ConnectionHelper.InitializeConnection(config);
+        }
+
+        private static void InitLogger()
+        {
+            LogUtility.Logger = Console.Out;
         }
 
         private static ConnectionMultiplexer Connection => ConnectionHelper.Connection;
