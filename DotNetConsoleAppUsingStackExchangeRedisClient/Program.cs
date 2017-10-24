@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Threading;
+using Commons.Pool;
 using StackExchange.Redis;
 
 namespace DotNetConsoleAppUsingStackExchangeRedisClient
@@ -10,12 +11,47 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
     {
         public static void Main(string[] args)
         {
+            //ForceConnectSample();
+            ConnectionPoolSample();
+        }
+
+        private static void ForceConnectSample()
+        {
             InitConnectionHelper();
+
+            ExecuteRedisOperation(() => Connection);
+        }
+
+        private static void ConnectionPoolSample()
+        {
+
+            var poolManager = new PoolManager();
+
+            // Create a new pool.
+            var connectionFactory = new ConnectionFactory<ConnectionMultiplexer>(buildConfigurationOptions());
+            var connectionPool = poolManager.NewPool<ConnectionMultiplexer>()
+                .InitialSize(0)
+                .MaxSize(10)
+                .WithFactory(connectionFactory)
+                .Instance();
+
+            var connection = connectionPool.Acquire();
+
+            ExecuteRedisOperation(() => connection);
+
+            connectionPool.Return(connection);
+
+            // When pool manager is disposed, the pool is disposed too.
+            poolManager.Dispose();
+        }
+
+        private static void ExecuteRedisOperation(Func<ConnectionMultiplexer> connection)
+        {
             var key = "key";
             var value = "value";
-            OperationExecutor(() => Connection.GetDatabase().KeyDelete(key));
-            OperationExecutor(() => Connection.GetDatabase().StringSet(key, value));
-            var newValue = OperationExecutor(() => Connection.GetDatabase().StringGet(key));
+            OperationExecutor(() => connection.Invoke().GetDatabase().KeyDelete(key));
+            OperationExecutor(() => connection.Invoke().GetDatabase().StringSet(key, value));
+            var newValue = OperationExecutor(() => connection.Invoke().GetDatabase().StringGet(key));
 
             Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
         }
@@ -41,7 +77,7 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                 {
                     retryTimes--;
                     // Try once after reconnect
-                    LogUtility.LogInfo("Force reconnect at {0:dd\\.hh\\:mm\\:ss}",
+                    LogUtility.LogInfo("Try to ForceReconnect at {0:dd\\.hh\\:mm\\:ss}",
                         DateTimeOffset.UtcNow);
                     ConnectionHelper.ForceReconnect();
                     if (retryTimes == 0)
@@ -61,6 +97,11 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         private static void InitConnectionHelper()
         {
+            ConnectionHelper.InitializeConnection(buildConfigurationOptions());
+        }
+
+        private static ConfigurationOptions buildConfigurationOptions()
+        {
             ConfigurationOptions config = new ConfigurationOptions();
             config.EndPoints.Add(ConfigurationManager.AppSettings["RedisCacheName"]);
             config.Password = ConfigurationManager.AppSettings["RedisCachePassword"];
@@ -68,8 +109,7 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
             config.AbortOnConnectFail = false;
             config.ConnectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
             config.ConnectTimeout = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeout"]);
-
-            ConnectionHelper.InitializeConnection(config);
+            return config;
         }
 
         private static ConnectionMultiplexer Connection => ConnectionHelper.Connection;

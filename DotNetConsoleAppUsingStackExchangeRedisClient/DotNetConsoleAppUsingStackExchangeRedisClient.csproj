@@ -35,6 +35,15 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Commons.Collections, Version=0.2.4.731, Culture=neutral, PublicKeyToken=350c09dc66177f04, processorArchitecture=MSIL">
+      <HintPath>packages\Commons.0.2.4.731\lib\net45\Commons.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Commons.Pool, Version=0.2.4.731, Culture=neutral, PublicKeyToken=350c09dc66177f04, processorArchitecture=MSIL">
+      <HintPath>packages\Commons.Pool.0.2.4.731\lib\net45\Commons.Pool.dll</HintPath>
+    </Reference>
+    <Reference Include="Commons.Utils, Version=0.2.4.731, Culture=neutral, PublicKeyToken=350c09dc66177f04, processorArchitecture=MSIL">
+      <HintPath>packages\Commons.0.2.4.731\lib\net45\Commons.Utils.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -56,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionFactory.cs" />
     <Compile Include="ConnectionHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="LogUtility.cs" />
