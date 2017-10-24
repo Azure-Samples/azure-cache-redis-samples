@@ -5,7 +5,7 @@ using StackExchange.Redis;
 namespace DotNetConsoleAppUsingStackExchangeRedisClient
 {
     /// <summary>
-    /// ConnectinHelper to support force reconnect when RedisConnectionException happend. 
+    /// ConnectionHelper supports connections and reconnections on RedisConnectionException exceptions.  
     /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
     public static class ConnectionHelper
@@ -30,16 +30,21 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         public static ConnectionMultiplexer Connection { get { return multiplexer.Value; } }
 
-
-        // Call this method before get Connection
-        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectInterval = 10,
-            int reconnectErrorThreshold = 5)
+        // Call InitializeConnection before get Connection
+        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectMinFrequencyInSeconds = 10,
+            int reconnectErrorThresholdInSeconds = 5)
         {
             ConnectionHelper.configuration = configuration;
             ConnectionHelper.configuration.AbortOnConnectFail = false;
-            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectInterval);
-            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThreshold);
+            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectMinFrequencyInSeconds);
+            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThresholdInSeconds);
             multiplexer = CreateMultiplexer();
+        }
+
+        public static void InitializeConnection(String connectionString, int reconnectMinFrequencyInSeconds = 10,
+            int reconnectErrorThresholdInSeconds = 5)
+        {
+            InitializeConnection(ConfigurationOptions.Parse(connectionString), reconnectMinFrequencyInSeconds, reconnectErrorThresholdInSeconds);
         }
 
         /// <summary>
@@ -64,17 +69,17 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                     var now = DateTimeOffset.UtcNow;
                     elapsedSinceLastReconnect = now - lastReconnectTime;
 
-                    // Some other thread made it through the check and the lock, so wait to next connect time.
-                    if (elapsedSinceLastReconnect < reconnectMinFrequency)
-                    {
-                        return;
-                    }
-
                     if (firstErrorTime == DateTimeOffset.MinValue)
                     {
                         // We haven't seen an error since last reconnect, so set initial values.
                         firstErrorTime = now;
                         previousErrorTime = now;
+                        return;
+                    }
+
+                    // Some other thread made it through the check and the lock, so wait to next connect time.
+                    if (elapsedSinceLastReconnect < reconnectMinFrequency)
+                    {
                         return;
                     }
 
@@ -102,36 +107,19 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                         LogUtility.LogInfo(
                             "ForceReconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
                             firstErrorTime, previousErrorTime, lastReconnectTime);
-
-                        // Put thread to sleep to avoid busy wait
-                        if (elapsedSinceFirstError < reconnectErrorThreshold)
-                        {
-                            LogUtility.LogInfo("ForceReconnect delay due to error threshold, sleep {0} seconds",
-                                (reconnectErrorThreshold - elapsedSinceFirstError).Seconds);
-                            Thread.Sleep(reconnectErrorThreshold - elapsedSinceFirstError);
-                        }
-                        else
-                        {
-                            Thread.Sleep(TimeSpan.FromSeconds(1));
-                        }
-
                     }
                 }
             }
             else
             {
-
-                // Put thread to sleep to avoid busy wait
                 LogUtility.LogInfo(
-                    "ForceReconnect delay due to min frequency, sleep {0} seconds, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
+                    "ForceReconnect delay due to min frequency, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
                     (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
-                Thread.Sleep(reconnectMinFrequency - elapsedSinceLastReconnect);
             }
         }
 
         private static Lazy<ConnectionMultiplexer> CreateMultiplexer()
         {
-            lastReconnectTime = DateTimeOffset.UtcNow;
             return new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(configuration));
         }
 
