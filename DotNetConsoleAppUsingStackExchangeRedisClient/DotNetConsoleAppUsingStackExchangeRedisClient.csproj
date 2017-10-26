@@ -65,8 +65,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionFactory.cs" />
+    <Compile Include="Commons\Pool\ConnectionFactory.cs" />
+    <Compile Include="Commons\Pool\ConnectionValidator.cs" />
+    <Compile Include="ReconnectionMultiplexer.cs" />
     <Compile Include="ConnectionHelper.cs" />
+    <Compile Include="Commons\Pool\GenericObjectPool.cs" />
+    <Compile Include="Commons\Pool\PoolBuilder.cs" />
+    <Compile Include="Commons\Pool\IObjectPool.cs" />
+    <Compile Include="Commons\Pool\IPooledObjectFactory.cs" />
+    <Compile Include="Commons\Pool\IPooledObjectValidator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="LogUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,5 +82,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

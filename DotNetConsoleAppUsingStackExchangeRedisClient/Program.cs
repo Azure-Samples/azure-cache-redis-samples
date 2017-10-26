@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Threading;
-using Commons.Pool;
+using DotNetConsoleAppUsingStackExchangeRedisClient.Commons.Pool;
 using StackExchange.Redis;
 
 namespace DotNetConsoleAppUsingStackExchangeRedisClient
@@ -24,25 +24,20 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         private static void ConnectionPoolSample()
         {
-
-            var poolManager = new PoolManager();
-
-            // Create a new pool.
-            var connectionFactory = new ConnectionFactory<ConnectionMultiplexer>(buildConfigurationOptions());
-            var connectionPool = poolManager.NewPool<ConnectionMultiplexer>()
+            var connectionFactory = new ConnectionFactory<ReconnectionMultiplexer>(buildConfigurationOptions());
+            
+            var connectionPool = PoolBuilder<ReconnectionMultiplexer>.NewBuilder()
                 .InitialSize(0)
                 .MaxSize(10)
                 .WithFactory(connectionFactory)
-                .Instance();
+                .WithValidator(new ConnectionValidator())
+                .NewPool();
 
             var connection = connectionPool.Acquire();
 
-            ExecuteRedisOperation(() => connection);
+            ExecuteRedisOperation(() => connection.Connection);
 
             connectionPool.Return(connection);
-
-            // When pool manager is disposed, the pool is disposed too.
-            poolManager.Dispose();
         }
 
         private static void ExecuteRedisOperation(Func<ConnectionMultiplexer> connection)
