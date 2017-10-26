@@ -62,6 +62,18 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         private static void InitConnectionHelper()
         {
+            ConnectionHelper.InitializeConnection(InitRedisConnectionConfigs());
+        }
+
+        private static ConfigurationOptions InitRedisConnectionConfigs()
+        {
+            String connnectionString = ConfigurationManager.AppSettings["RedisConnectionString"];
+
+            if (!string.IsNullOrEmpty(connnectionString))
+            {
+                return ConfigurationOptions.Parse(connnectionString);
+            }
+
             ConfigurationOptions config = new ConfigurationOptions();
             config.EndPoints.Add(ConfigurationManager.AppSettings["RedisCacheHostName"]);
             config.Password = ConfigurationManager.AppSettings["RedisCachePassword"];
@@ -70,7 +82,7 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
             config.ConnectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
             config.ConnectTimeout = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
-            ConnectionHelper.InitializeConnection(config);
+            return config;
         }
 
         private static void InitLogger()

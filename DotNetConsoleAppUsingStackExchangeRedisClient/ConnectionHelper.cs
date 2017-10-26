@@ -17,11 +17,11 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         // In general, let StackExchange.Redis handle most reconnects, 
         // so limit the frequency of how often this will actually reconnect.
-        public static TimeSpan reconnectMinFrequency;
+        public static TimeSpan reconnectMinFrequency = TimeSpan.FromSeconds(60);
 
         // if errors continue for longer than the below threshold, then the 
         // multiplexer seems to not be reconnecting, so re-create the multiplexer
-        public static TimeSpan reconnectErrorThreshold;
+        public static TimeSpan reconnectErrorThreshold = TimeSpan.FromSeconds(30);
 
         private static readonly object reconnectLock = new object();
         private static ConfigurationOptions configuration;
@@ -31,20 +31,29 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
         public static ConnectionMultiplexer Connection { get { return multiplexer.Value; } }
 
         // Call InitializeConnection before get Connection
-        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectMinFrequencyInSeconds = 10,
-            int reconnectErrorThresholdInSeconds = 5)
+        public static void InitializeConnection(ConfigurationOptions configuration)
         {
             ConnectionHelper.configuration = configuration;
             ConnectionHelper.configuration.AbortOnConnectFail = false;
-            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectMinFrequencyInSeconds);
-            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThresholdInSeconds);
             multiplexer = CreateMultiplexer();
         }
 
-        public static void InitializeConnection(String connectionString, int reconnectMinFrequencyInSeconds = 10,
-            int reconnectErrorThresholdInSeconds = 5)
+        public static void InitializeConnection(string connectionString)
+        {
+            InitializeConnection(ConfigurationOptions.Parse(connectionString));
+        }
+
+        public static void InitializeConnection(string connectionString, int reconnectMinFrequencyInSeconds,
+            int reconnectErrorThresholdInSeconds)
         {
             InitializeConnection(ConfigurationOptions.Parse(connectionString), reconnectMinFrequencyInSeconds, reconnectErrorThresholdInSeconds);
+        }
+
+        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectMinFrequencyInSeconds, int reconnectErrorThresholdInSeconds)
+        {
+            InitializeConnection(configuration);
+            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectMinFrequencyInSeconds);
+            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThresholdInSeconds);
         }
 
         /// <summary>
@@ -91,7 +100,7 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                         elapsedSinceFirstError >=
                         reconnectErrorThreshold // make sure we gave the multiplexer enough time to reconnect on its own if it can
                         && elapsedSinceMostRecentError <=
-                        reconnectErrorThreshold; //make sure we aren't working on stale data (e.g. if there was a gap in errors, don't reconnect yet).                    
+                        reconnectErrorThreshold; //make sure we aren't working on stale data (e.g. if there was a gap in errors, don't reconnect yet).  
 
                     if (shouldReconnect)
                     {
