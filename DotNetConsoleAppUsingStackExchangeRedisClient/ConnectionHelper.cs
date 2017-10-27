@@ -28,32 +28,21 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         private static Lazy<ConnectionMultiplexer> multiplexer;
 
-        public static ConnectionMultiplexer Connection { get { return multiplexer.Value; } }
+        public static ConnectionMultiplexer Connection => multiplexer.Value;
 
         // Call InitializeConnection before get Connection
-        public static void InitializeConnection(ConfigurationOptions configuration)
-        {
-            ConnectionHelper.configuration = configuration;
-            ConnectionHelper.configuration.AbortOnConnectFail = false;
-            multiplexer = CreateMultiplexer();
-        }
 
-        public static void InitializeConnection(string connectionString)
+        public static void InitializeConnection(string hostName, string password, int connectRetry,
+            int connectTimeoutInMilliseconds, bool enableSsl)
         {
-            InitializeConnection(ConfigurationOptions.Parse(connectionString));
-        }
-
-        public static void InitializeConnection(string connectionString, int reconnectMinFrequencyInSeconds,
-            int reconnectErrorThresholdInSeconds)
-        {
-            InitializeConnection(ConfigurationOptions.Parse(connectionString), reconnectMinFrequencyInSeconds, reconnectErrorThresholdInSeconds);
-        }
-
-        public static void InitializeConnection(ConfigurationOptions configuration, int reconnectMinFrequencyInSeconds, int reconnectErrorThresholdInSeconds)
-        {
-            InitializeConnection(configuration);
-            ConnectionHelper.reconnectMinFrequency = TimeSpan.FromSeconds(reconnectMinFrequencyInSeconds);
-            ConnectionHelper.reconnectErrorThreshold = TimeSpan.FromSeconds(reconnectErrorThresholdInSeconds);
+            ConfigurationOptions config = new ConfigurationOptions();
+            config.EndPoints.Add(hostName);
+            config.Password = password;
+            config.Ssl = enableSsl;
+            config.AbortOnConnectFail = false;
+            config.ConnectRetry = connectRetry;
+            config.ConnectTimeout = connectTimeoutInMilliseconds;
+            ConnectionHelper.configuration = config;
         }
 
         /// <summary>

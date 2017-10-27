@@ -14,9 +14,9 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
             InitConnectionHelper();
             var key = "key";
             var value = "value";
-            OperationExecutor(() => Connection.GetDatabase().KeyDelete(key));
-            OperationExecutor(() => Connection.GetDatabase().StringSet(key, value));
-            var newValue = OperationExecutor(() => Connection.GetDatabase().StringGet(key));
+            OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().KeyDelete(key));
+            OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().StringSet(key, value));
+            var newValue = OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().StringGet(key));
 
             Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
         }
@@ -36,23 +36,11 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                     // Retry later as this can be caused by force reconnect by closing multiplexer
                     LogUtility.LogInfo("object disposing exception at {0:dd\\.hh\\:mm\\:ss}",
                         DateTimeOffset.UtcNow);
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
-                }
-                catch (RedisConnectionException)
-                {
                     retryTimes--;
-                    // Try once after reconnect
-                    LogUtility.LogInfo("Force reconnect at {0:dd\\.hh\\:mm\\:ss}",
-                        DateTimeOffset.UtcNow);
-                    ConnectionHelper.ForceReconnect();
-                    if (retryTimes == 0)
-                    {
-                        throw;
-                    }
                 }
                 catch (Exception e)
                 {
-                    LogUtility.LogError("Exception {0} thrown when exccuting {1}", e, redisOperation);
+                    LogUtility.LogError("Exception {0} thrown when executing {1}", e, redisOperation);
                     throw;
                 }
             }
@@ -62,35 +50,19 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
 
         private static void InitConnectionHelper()
         {
-            ConnectionHelper.InitializeConnection(InitRedisConnectionConfigs());
-        }
+            var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
+            var password = ConfigurationManager.AppSettings["RedisCachePassword"];
+            var enableSsl = bool.Parse(ConfigurationManager.AppSettings["enableSsl"]);
+            var connectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
+            var connectTimeoutInMilliseconds = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
-        private static ConfigurationOptions InitRedisConnectionConfigs()
-        {
-            String connnectionString = ConfigurationManager.AppSettings["RedisConnectionString"];
-
-            if (!string.IsNullOrEmpty(connnectionString))
-            {
-                return ConfigurationOptions.Parse(connnectionString);
-            }
-
-            ConfigurationOptions config = new ConfigurationOptions();
-            config.EndPoints.Add(ConfigurationManager.AppSettings["RedisCacheHostName"]);
-            config.Password = ConfigurationManager.AppSettings["RedisCachePassword"];
-            config.Ssl = bool.Parse(ConfigurationManager.AppSettings["enableSsl"]);
-            config.AbortOnConnectFail = false;
-            config.ConnectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
-            config.ConnectTimeout = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
-
-            return config;
+            ConnectionHelper.InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
         }
 
         private static void InitLogger()
         {
             LogUtility.Logger = Console.Out;
         }
-
-        private static ConnectionMultiplexer Connection => ConnectionHelper.Connection;
 
     }
 }
