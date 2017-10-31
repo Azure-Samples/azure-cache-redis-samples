@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Threading;
 using StackExchange.Redis;
 
-namespace DotNetConsoleAppUsingStackExchangeRedisClient
+namespace Samples
 {
     /// <summary>
-    /// ConnectionHelper supports connections and reconnections on RedisConnectionException exceptions.  
+    /// ForceReconnect supports connections and reconnections on RedisConnectionException exceptions.
     /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
-    public static class ConnectionHelper
+    public static class ForceReconnect
     {
         private static DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
         private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
@@ -27,22 +26,29 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
         private static ConfigurationOptions configuration;
 
         private static Lazy<ConnectionMultiplexer> multiplexer;
+        private static bool initialized = false;
 
-        public static ConnectionMultiplexer Connection => multiplexer.Value;
-
-        // Call InitializeConnection before get Connection
+        public static ConnectionMultiplexer Connection
+        {
+            get
+            {
+                EnsureInitialized();
+                return multiplexer.Value;
+            }
+        }
 
         public static void InitializeConnection(string hostName, string password, int connectRetry,
-            int connectTimeoutInMilliseconds, bool enableSsl)
+            int connectTimeoutInMilliseconds, bool useSsl)
         {
             ConfigurationOptions config = new ConfigurationOptions();
             config.EndPoints.Add(hostName);
             config.Password = password;
-            config.Ssl = enableSsl;
+            config.Ssl = useSsl;
             config.AbortOnConnectFail = false;
             config.ConnectRetry = connectRetry;
             config.ConnectTimeout = connectTimeoutInMilliseconds;
-            ConnectionHelper.configuration = config;
+            configuration = config;
+            initialized = true;
         }
 
         /// <summary>
@@ -54,8 +60,9 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
         ///         a. for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinFrequency"
         /// </summary>   
-        public static void ForceReconnect()
+        public static void DoForceReconnect()
         {
+            EnsureInitialized();
             var previousReconnect = lastReconnectTime;
             var elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnect;
 
@@ -113,6 +120,14 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
                 LogUtility.LogInfo(
                     "ForceReconnect delay due to min frequency, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
                     (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
+            }
+        }
+
+        private static void EnsureInitialized()
+        {
+            if (!initialized)
+            {
+                throw new Exception("Please Call InitializeConnection before get Connection.");
             }
         }
 

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 
-namespace DotNetConsoleAppUsingStackExchangeRedisClient
+namespace Samples
 {
     internal static class LogUtility
     {

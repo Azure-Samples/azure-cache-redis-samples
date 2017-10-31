@@ -1,27 +1,38 @@
 ﻿using System;
 using System.Configuration;
-using System.Threading;
 using StackExchange.Redis;
 
-namespace DotNetConsoleAppUsingStackExchangeRedisClient
+namespace Samples
 {
-
-    public static class Program
+    class Program
     {
+
         public static void Main(string[] args)
+        {
+            SampleForForceReconnect();
+        }
+
+        private static void SampleForForceReconnect()
         {
             InitLogger();
             InitConnectionHelper();
             var key = "key";
             var value = "value";
-            OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().KeyDelete(key));
-            OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().StringSet(key, value));
-            var newValue = OperationExecutor(() => ConnectionHelper.Connection.GetDatabase().StringGet(key));
+            try
+            {
+                OperationExecutor(() => ForceReconnect.Connection.GetDatabase().KeyDelete(key));
+                OperationExecutor(() => ForceReconnect.Connection.GetDatabase().StringSet(key, value));
+                var newValue = OperationExecutor(() => ForceReconnect.Connection.GetDatabase().StringGet(key));
 
-            Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
+                Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
+            }
+            catch (RedisConnectionException)
+            {
+                ForceReconnect.DoForceReconnect();
+            }
         }
 
-        // OperationExecutor will retry if RedisConnectionException happens 
+        // OperationExecutor will retry if RedisConnectionException happens
         // After retryTimes, exception will be thrown out
         private static object OperationExecutor(Func<object> redisOperation, int retryTimes = 10)
         {
@@ -52,18 +63,20 @@ namespace DotNetConsoleAppUsingStackExchangeRedisClient
         {
             var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
             var password = ConfigurationManager.AppSettings["RedisCachePassword"];
-            var enableSsl = bool.Parse(ConfigurationManager.AppSettings["enableSsl"]);
+            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Please provide cacheName and password");
+            }
+            var enableSsl = bool.Parse(ConfigurationManager.AppSettings["useSsl"]);
             var connectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
             var connectTimeoutInMilliseconds = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
-            ConnectionHelper.InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
+            ForceReconnect.InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
         }
 
         private static void InitLogger()
         {
             LogUtility.Logger = Console.Out;
         }
-
     }
 }
-
