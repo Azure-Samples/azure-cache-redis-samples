@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Configuration;
 using StackExchange.Redis;
 
-namespace Samples
+namespace DotNet.ClientSamples.StackExchange.Redis
 {
     /// <summary>
     /// ForceReconnect supports connections and reconnections on RedisConnectionException exceptions.
@@ -35,6 +36,48 @@ namespace Samples
                 EnsureInitialized();
                 return multiplexer.Value;
             }
+        }
+
+        // OperationExecutor will retry if RedisConnectionException happens
+        // After retryTimes, exception will be thrown out
+        public static object OperationExecutor(Func<object> redisOperation, int retryTimes = 10)
+        {
+            while (retryTimes > 0)
+            {
+                try
+                {
+                    return redisOperation.Invoke();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Retry later as this can be caused by force reconnect by closing multiplexer
+                    LogUtility.LogInfo("object disposing exception at {0:dd\\.hh\\:mm\\:ss}",
+                        DateTimeOffset.UtcNow);
+                    retryTimes--;
+                }
+                catch (Exception e)
+                {
+                    LogUtility.LogError("Exception {0} thrown when executing {1}", e, redisOperation);
+                    throw;
+                }
+            }
+
+            return redisOperation.Invoke();
+        }
+
+        public static void InitConnectionHelper()
+        {
+            var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
+            var password = ConfigurationManager.AppSettings["RedisCachePassword"];
+            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Please provide cacheName and password");
+            }
+            var enableSsl = bool.Parse(ConfigurationManager.AppSettings["useSsl"]);
+            var connectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
+            var connectTimeoutInMilliseconds = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
+
+            InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
         }
 
         public static void InitializeConnection(string hostName, string password, int connectRetry,
