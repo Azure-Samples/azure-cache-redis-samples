@@ -53,6 +53,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Backoff\BackOff.cs" />
+    <Compile Include="Backoff\ExponentialBackOff.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ForceReconnect.cs" />
     <Compile Include="LogUtility.cs" />
