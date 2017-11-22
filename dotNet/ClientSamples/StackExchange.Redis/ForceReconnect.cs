@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Configuration;
+using DotNet.ClientSamples.StackExchange.Redis.Backoff;
 using StackExchange.Redis;
 
 namespace DotNet.ClientSamples.StackExchange.Redis
 {
     /// <summary>
     /// ForceReconnect supports connections and reconnections on RedisConnectionException exceptions.
-    /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
     public static class ForceReconnect
     {
+        private static readonly BackOff backOff = new ExponentialBackOff(TimeSpan.FromSeconds(60));
         private static DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
         private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
 
@@ -51,7 +52,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 catch (ObjectDisposedException)
                 {
                     // Retry later as this can be caused by force reconnect by closing multiplexer
-                    LogUtility.LogInfo("object disposing exception at {0:dd\\.hh\\:mm\\:ss}",
+                    LogUtility.LogInfo("object disposing exception at {0:hh\\:mm\\:ss}",
                         DateTimeOffset.UtcNow);
                     retryTimes--;
                 }
@@ -92,6 +93,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             config.ConnectTimeout = connectTimeoutInMilliseconds;
             configuration = config;
             initialized = true;
+            multiplexer = CreateMultiplexer();
         }
 
         /// <summary>
@@ -122,6 +124,8 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                         // We haven't seen an error since last reconnect, so set initial values.
                         firstErrorTime = now;
                         previousErrorTime = now;
+                        backOff.Reset();
+                        reconnectMinFrequency = TimeSpan.FromSeconds(60);
                         return;
                     }
 
@@ -144,16 +148,18 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     if (shouldReconnect)
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect at {0:dd\\.hh\\:mm\\:ss}, elapsedSinceFirstError: {1}, elapsedSinceMostRecentError at {2}", now, elapsedSinceFirstError.Seconds, elapsedSinceMostRecentError.Seconds);
+                            "ForceReconnect at {0:hh\\:mm\\:ss}, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}", now, 
+                            firstErrorTime, previousErrorTime, lastReconnectTime);
                         firstErrorTime = DateTimeOffset.MinValue;
                         previousErrorTime = DateTimeOffset.MinValue;
                         lastReconnectTime = now;
+                        reconnectMinFrequency = backOff.NextBackOff();
                         CloseMultiplexer(multiplexer);
                         multiplexer = CreateMultiplexer();
                     } else
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
+                            "ForceReconnect delay due to error threshold {0}s, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}", reconnectErrorThreshold.TotalSeconds,
                             firstErrorTime, previousErrorTime, lastReconnectTime);
                     }
                 }
@@ -161,8 +167,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             else
             {
                 LogUtility.LogInfo(
-                    "ForceReconnect delay due to min frequency, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
-                    (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
+                    "ForceReconnect delay due to current min frequency: {0}s, lastConnect at {1:hh\\:mm\\:ss}", reconnectMinFrequency.TotalSeconds, lastReconnectTime);
             }
         }
 

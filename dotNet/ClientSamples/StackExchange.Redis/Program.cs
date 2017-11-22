@@ -29,6 +29,11 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             {
                 ForceReconnect.DoForceReconnect();
             }
+            catch (RedisTimeoutException)
+            {
+                // Sometimes failed to connect will throw timeout exception
+                ForceReconnect.DoForceReconnect();
+            }
         }
 
         private static void InitLogger()

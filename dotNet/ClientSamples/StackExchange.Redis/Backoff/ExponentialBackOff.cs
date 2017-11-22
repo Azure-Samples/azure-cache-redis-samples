@@ -5,8 +5,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis.Backoff
     public class ExponentialBackOff : BackOff
     {
 
-        // The default initial interval value (0.5 seconds).
-        public static readonly TimeSpan DEFAULT_INITIAL_INTERVAL = TimeSpan.FromSeconds(0.5);
+        public static readonly TimeSpan DEFAULT_INITIAL_INTERVAL = TimeSpan.FromSeconds(60);
 
         // The default multiplier value (1.5 which is 50% increase per back off).
         public static readonly double DEFAULT_MULTIPLIER = 1.5;
@@ -26,6 +25,10 @@ namespace DotNet.ClientSamples.StackExchange.Redis.Backoff
         public TimeSpan ElapsedTime { get; set; } = TimeSpan.Zero;
 
         public ExponentialBackOff()
+        {
+        }
+
+        public ExponentialBackOff(TimeSpan initialInterval) : this(initialInterval, DEFAULT_MULTIPLIER)
         {
         }
 
@@ -69,7 +72,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis.Backoff
             }
             else
             {
-                CurrentInterval = TimeSpan.FromTicks((long)(CurrentInterval.Ticks * Multiplier));
+                CurrentInterval = TimeSpan.FromSeconds(CurrentInterval.TotalSeconds * Multiplier);
             }
         }
     }
