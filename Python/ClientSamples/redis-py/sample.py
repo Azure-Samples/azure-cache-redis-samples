@@ -1,6 +1,7 @@
 import redis
 import logging
 import psutil
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -60,6 +61,12 @@ def metrics2str(nt):
         metrics.append('%s : %s' % (name.capitalize(), value))
 
     return ", ".join(metrics)
+
+
+def test_recover_from_disconnect():
+    while True:
+        simple_set_get()
+        time.sleep(10)
 
 
 if __name__ == '__main__':
