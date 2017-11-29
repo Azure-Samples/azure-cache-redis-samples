@@ -29,11 +29,6 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             {
                 ConnectionHelper.ForceReconnect();
             }
-            catch (RedisTimeoutException)
-            {
-                // Sometimes failed to connect will throw timeout exception
-                ConnectionHelper.ForceReconnect();
-            }
             catch (ObjectDisposedException)
             {
                 LogUtility.LogInfo("Retry later since reconnection is in progress");
