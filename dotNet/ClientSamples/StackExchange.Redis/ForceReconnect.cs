@@ -118,25 +118,26 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     if (shouldReconnect)
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect at {0:dd\\.hh\\:mm\\:ss}, elapsedSinceFirstError: {1}, elapsedSinceMostRecentError at {2}", now, elapsedSinceFirstError.Seconds, elapsedSinceMostRecentError.Seconds);
+                            "ForceReconnect at {0:hh\\:mm\\:ss}, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
+                            now, firstErrorTime, previousErrorTime, lastReconnectTime);
                         firstErrorTime = DateTimeOffset.MinValue;
                         previousErrorTime = DateTimeOffset.MinValue;
                         lastReconnectTime = now;
                         CloseMultiplexer(multiplexer);
                         multiplexer = CreateMultiplexer();
-                    } else
+                    }
+                    else
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
-                            firstErrorTime, previousErrorTime, lastReconnectTime);
+                            "ForceReconnect delay due to error threshold {0}s, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
+                            reconnectErrorThreshold.TotalSeconds, firstErrorTime, previousErrorTime, lastReconnectTime);
                     }
                 }
             }
             else
             {
                 LogUtility.LogInfo(
-                    "ForceReconnect delay due to min frequency, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
-                    (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
+                    "ForceReconnect delay due to current min frequency: {0}s, lastConnect at {1:hh\\:mm\\:ss}", reconnectMinFrequency.TotalSeconds, lastReconnectTime);
             }
         }
 
