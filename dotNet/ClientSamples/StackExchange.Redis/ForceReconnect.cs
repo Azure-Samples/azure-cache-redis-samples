@@ -65,6 +65,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             config.ConnectTimeout = connectTimeoutInMilliseconds;
             configuration = config;
             initialized = true;
+            multiplexer = CreateMultiplexer();
         }
 
         /// <summary>
