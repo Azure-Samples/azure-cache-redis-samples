@@ -38,33 +38,6 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             }
         }
 
-        // OperationExecutor will retry if RedisConnectionException happens
-        // After retryTimes, exception will be thrown out
-        public static object OperationExecutor(Func<object> redisOperation, int retryTimes = 10)
-        {
-            while (retryTimes > 0)
-            {
-                try
-                {
-                    return redisOperation.Invoke();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Retry later as this can be caused by force reconnect by closing multiplexer
-                    LogUtility.LogInfo("object disposing exception at {0:dd\\.hh\\:mm\\:ss}",
-                        DateTimeOffset.UtcNow);
-                    retryTimes--;
-                }
-                catch (Exception e)
-                {
-                    LogUtility.LogError("Exception {0} thrown when executing {1}", e, redisOperation);
-                    throw;
-                }
-            }
-
-            return redisOperation.Invoke();
-        }
-
         public static void InitConnectionHelper()
         {
             var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
