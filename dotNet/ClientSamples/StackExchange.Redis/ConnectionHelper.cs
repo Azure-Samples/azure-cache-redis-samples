@@ -5,10 +5,10 @@ using StackExchange.Redis;
 namespace DotNet.ClientSamples.StackExchange.Redis
 {
     /// <summary>
-    /// ForceReconnect supports connections and reconnections on RedisConnectionException exceptions.
+    /// ConnectionHelper supports reconnections on RedisConnectionException.
     /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
-    public static class ForceReconnect
+    public static class ConnectionHelper
     {
         private static DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
         private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
@@ -29,6 +29,8 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         private static Lazy<ConnectionMultiplexer> multiplexer;
         private static bool initialized = false;
 
+
+        /// <exception cref="ObjectDisposedException">when force reconnecting.</exception>
         public static ConnectionMultiplexer Connection
         {
             get
@@ -71,13 +73,13 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.  
         /// NOTES: 
-        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnect()
+        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen when get Connection property
         ///     2. Don't call ForceReconnect for Timeouts, just for RedisConnectionExceptions
         ///     3. Call this method every time you see a connection exception, the code will wait to reconnect:
         ///         a. for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinFrequency"
-        /// </summary>   
-        public static void DoForceReconnect()
+        /// </summary>
+        public static void ForceReconnect()
         {
             EnsureInitialized();
             var previousReconnect = lastReconnectTime;
@@ -163,9 +165,9 @@ namespace DotNet.ClientSamples.StackExchange.Redis
 
             try
             {
-                LogUtility.LogInfo("ForceConnect to close old multiplexer...");
+                LogUtility.LogInfo("ForceReconnect to close old multiplexer...");
                 multiplexer.Value.Close();
-                LogUtility.LogInfo("ForceConnect closed old multiplexer");
+                LogUtility.LogInfo("ForceReconnect closed old multiplexer");
             }
             catch (Exception e)
             {

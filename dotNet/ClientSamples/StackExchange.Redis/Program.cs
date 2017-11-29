@@ -14,25 +14,25 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         private static void SampleForForceReconnect()
         {
             InitLogger();
-            ForceReconnect.InitConnectionHelper();
+            ConnectionHelper.InitConnectionHelper();
             var key = "key";
             var value = "value";
             try
             {
-                ForceReconnect.Connection.GetDatabase().KeyDelete(key);
-                ForceReconnect.Connection.GetDatabase().StringSet(key, value);
-                var newValue = ForceReconnect.Connection.GetDatabase().StringGet(key);
+                ConnectionHelper.Connection.GetDatabase().KeyDelete(key);
+                ConnectionHelper.Connection.GetDatabase().StringSet(key, value);
+                var newValue = ConnectionHelper.Connection.GetDatabase().StringGet(key);
 
                 Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
             }
             catch (RedisConnectionException)
             {
-                ForceReconnect.DoForceReconnect();
+                ConnectionHelper.ForceReconnect();
             }
             catch (RedisTimeoutException)
             {
                 // Sometimes failed to connect will throw timeout exception
-                ForceReconnect.DoForceReconnect();
+                ConnectionHelper.ForceReconnect();
             }
             catch (ObjectDisposedException)
             {
