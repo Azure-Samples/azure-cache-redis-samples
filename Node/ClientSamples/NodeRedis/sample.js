@@ -11,7 +11,7 @@ var port = 6380;
 var client = redis.createClient(port, host, {auth_pass: password, tls: {servername: host}});
 
 client.on('error', function (err) {
-    console.log('error event - ' + err);
+    console.log('Error - ' + err);
 });
 
 var key = 'foo';
