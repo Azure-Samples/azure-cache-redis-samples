@@ -1,0 +1,13 @@
+# Intellij files
+
+.idea/
+*.iml
+
+# library
+
+vendor/
+
+# composer
+
+composer.phar
+
