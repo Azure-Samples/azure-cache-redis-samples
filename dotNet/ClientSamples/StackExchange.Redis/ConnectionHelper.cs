@@ -40,7 +40,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             }
         }
 
-        public static void InitConnectionHelper()
+        public static void Initialize()
         {
             var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
             var password = ConfigurationManager.AppSettings["RedisCachePassword"];
@@ -52,10 +52,10 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             var connectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
             var connectTimeoutInMilliseconds = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
-            InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
+            Initialize(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
         }
 
-        public static void InitializeConnection(string hostName, string password, int connectRetry,
+        public static void Initialize(string hostName, string password, int connectRetry,
             int connectTimeoutInMilliseconds, bool useSsl)
         {
             ConfigurationOptions config = new ConfigurationOptions();
@@ -147,7 +147,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         {
             if (!initialized)
             {
-                throw new Exception("Please Call InitializeConnection before get Connection.");
+                throw new Exception("Please Call Initialize() before get Connection.");
             }
         }
 

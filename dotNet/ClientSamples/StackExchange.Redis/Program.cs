@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using StackExchange.Redis;
 
 namespace DotNet.ClientSamples.StackExchange.Redis
@@ -14,7 +15,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         private static void SampleForForceReconnect()
         {
             InitLogger();
-            ConnectionHelper.InitConnectionHelper();
+            ConnectionHelper.Initialize();
             var key = "key";
             var value = "value";
             try
@@ -25,7 +26,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
 
                 Console.WriteLine("new value is {0}, expected value is {1}", newValue, value);
             }
-            catch (RedisConnectionException)
+            catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
             {
                 ConnectionHelper.ForceReconnect();
             }
