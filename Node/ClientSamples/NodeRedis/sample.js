@@ -17,11 +17,19 @@ client.on('error', function (err) {
 var key = 'foo';
 var value = 'bar';
 
-client.set(key, value, redis.print);
-client.get(key, function (err, reply) {
-    if (err) throw err;
-    console.log(reply.toString());
-});
+var simple_set_get = function () {
+    client.set(key, value, redis.print);
+    client.get(key, function (err, reply) {
+        if (err) throw err;
+        console.log(reply.toString());
+    });
+};
+
+// Send ping every minute to avoid idle connection been closed
+setInterval(function(){
+    console.log('redisClient => Sending Ping...');
+    client.ping();
+}, 1000 * 60 );
 
 client.quit(function (err, res) {
     console.log('redis client quit.');
