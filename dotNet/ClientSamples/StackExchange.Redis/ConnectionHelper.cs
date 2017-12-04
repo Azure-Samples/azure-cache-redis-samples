@@ -5,10 +5,10 @@ using StackExchange.Redis;
 namespace DotNet.ClientSamples.StackExchange.Redis
 {
     /// <summary>
-    /// ForceReconnect supports connections and reconnections on RedisConnectionException exceptions.
+    /// ConnectionHelper supports reconnections on RedisConnectionException.
     /// Current retry policy is fixed time interval retry, which mean two reconnect won't happen in reconnectMinFrequency
     /// </summary> 
-    public static class ForceReconnect
+    public static class ConnectionHelper
     {
         private static DateTimeOffset lastReconnectTime = DateTimeOffset.MinValue;
         private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
@@ -29,6 +29,8 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         private static Lazy<ConnectionMultiplexer> multiplexer;
         private static bool initialized = false;
 
+
+        /// <exception cref="ObjectDisposedException">when force reconnecting.</exception>
         public static ConnectionMultiplexer Connection
         {
             get
@@ -38,34 +40,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             }
         }
 
-        // OperationExecutor will retry if RedisConnectionException happens
-        // After retryTimes, exception will be thrown out
-        public static object OperationExecutor(Func<object> redisOperation, int retryTimes = 10)
-        {
-            while (retryTimes > 0)
-            {
-                try
-                {
-                    return redisOperation.Invoke();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Retry later as this can be caused by force reconnect by closing multiplexer
-                    LogUtility.LogInfo("object disposing exception at {0:dd\\.hh\\:mm\\:ss}",
-                        DateTimeOffset.UtcNow);
-                    retryTimes--;
-                }
-                catch (Exception e)
-                {
-                    LogUtility.LogError("Exception {0} thrown when executing {1}", e, redisOperation);
-                    throw;
-                }
-            }
-
-            return redisOperation.Invoke();
-        }
-
-        public static void InitConnectionHelper()
+        public static void Initialize()
         {
             var hostName = ConfigurationManager.AppSettings["RedisCacheHostName"];
             var password = ConfigurationManager.AppSettings["RedisCachePassword"];
@@ -77,10 +52,10 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             var connectRetry = int.Parse(ConfigurationManager.AppSettings["RedisConnectRetry"]);
             var connectTimeoutInMilliseconds = int.Parse(ConfigurationManager.AppSettings["RedisConnectTimeoutInMilliseconds"]);
 
-            InitializeConnection(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
+            Initialize(hostName, password, connectRetry, connectTimeoutInMilliseconds, enableSsl);
         }
 
-        public static void InitializeConnection(string hostName, string password, int connectRetry,
+        public static void Initialize(string hostName, string password, int connectRetry,
             int connectTimeoutInMilliseconds, bool useSsl)
         {
             ConfigurationOptions config = new ConfigurationOptions();
@@ -92,18 +67,19 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             config.ConnectTimeout = connectTimeoutInMilliseconds;
             configuration = config;
             initialized = true;
+            multiplexer = CreateMultiplexer();
         }
 
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.  
         /// NOTES: 
-        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnect()
+        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen when get Connection property
         ///     2. Don't call ForceReconnect for Timeouts, just for RedisConnectionExceptions
         ///     3. Call this method every time you see a connection exception, the code will wait to reconnect:
         ///         a. for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinFrequency"
-        /// </summary>   
-        public static void DoForceReconnect()
+        /// </summary>
+        public static void ForceReconnect()
         {
             EnsureInitialized();
             var previousReconnect = lastReconnectTime;
@@ -144,25 +120,26 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     if (shouldReconnect)
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect at {0:dd\\.hh\\:mm\\:ss}, elapsedSinceFirstError: {1}, elapsedSinceMostRecentError at {2}", now, elapsedSinceFirstError.Seconds, elapsedSinceMostRecentError.Seconds);
+                            "ForceReconnect at {0:hh\\:mm\\:ss}, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
+                            now, firstErrorTime, previousErrorTime, lastReconnectTime);
                         firstErrorTime = DateTimeOffset.MinValue;
                         previousErrorTime = DateTimeOffset.MinValue;
                         lastReconnectTime = now;
                         CloseMultiplexer(multiplexer);
                         multiplexer = CreateMultiplexer();
-                    } else
+                    }
+                    else
                     {
                         LogUtility.LogInfo(
-                            "ForceReconnect delay due to error threshold, firstError at {0:dd\\.hh\\:mm\\:ss}, previousError at {1:dd\\.hh\\:mm\\:ss}, lastConnect at {2:dd\\.hh\\:mm\\:ss}",
-                            firstErrorTime, previousErrorTime, lastReconnectTime);
+                            "ForceReconnect delay due to error threshold {0}s, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
+                            reconnectErrorThreshold.TotalSeconds, firstErrorTime, previousErrorTime, lastReconnectTime);
                     }
                 }
             }
             else
             {
                 LogUtility.LogInfo(
-                    "ForceReconnect delay due to min frequency, lastConnect at {1:dd\\.hh\\:mm\\:ss}",
-                    (reconnectMinFrequency - elapsedSinceLastReconnect).Seconds, lastReconnectTime);
+                    "ForceReconnect delay due to current min frequency: {0}s, lastConnect at {1:hh\\:mm\\:ss}", reconnectMinFrequency.TotalSeconds, lastReconnectTime);
             }
         }
 
@@ -170,7 +147,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         {
             if (!initialized)
             {
-                throw new Exception("Please Call InitializeConnection before get Connection.");
+                throw new Exception("Please Call Initialize() before get Connection.");
             }
         }
 
@@ -188,9 +165,9 @@ namespace DotNet.ClientSamples.StackExchange.Redis
 
             try
             {
-                LogUtility.LogInfo("ForceConnect to close old multiplexer...");
+                LogUtility.LogInfo("ForceReconnect to close old multiplexer...");
                 multiplexer.Value.Close();
-                LogUtility.LogInfo("ForceConnect closed old multiplexer");
+                LogUtility.LogInfo("ForceReconnect closed old multiplexer");
             }
             catch (Exception e)
             {

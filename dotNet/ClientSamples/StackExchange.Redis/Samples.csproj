@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Compile Include="ForceReconnect.cs" />
+    <Compile Include="ConnectionHelper.cs" />
     <Compile Include="LogUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
