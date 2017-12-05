@@ -95,7 +95,7 @@ public class JedisPoolConfiguration {
 		return configs.get(RedisConfigKey.PASSWORD.getKey());
 	}
 
-	static JedisPoolConfigurationBuilder builder() {
+	public static JedisPoolConfigurationBuilder builder() {
 		return new JedisPoolConfigurationBuilder();
 	}
 
