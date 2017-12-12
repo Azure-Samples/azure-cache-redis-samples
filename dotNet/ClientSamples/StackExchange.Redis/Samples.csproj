@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchmark.cs" />
     <Compile Include="ForceReconnectSample.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ConnectionHelper.cs" />
