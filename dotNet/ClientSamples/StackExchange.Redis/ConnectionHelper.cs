@@ -119,7 +119,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
 
                     if (shouldReconnect)
                     {
-                        LogUtility.LogInfo(
+                        LogUtility.LogDebug(
                             "ForceReconnect at {0:hh\\:mm\\:ss}, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
                             now, firstErrorTime, previousErrorTime, lastReconnectTime);
                         firstErrorTime = DateTimeOffset.MinValue;
@@ -130,7 +130,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     }
                     else
                     {
-                        LogUtility.LogInfo(
+                        LogUtility.LogDebug(
                             "ForceReconnect delay due to error threshold {0}s, firstError at {1:hh\\:mm\\:ss}, previousError at {2:hh\\:mm\\:ss}, lastConnect at {3:hh\\:mm\\:ss}",
                             reconnectErrorThreshold.TotalSeconds, firstErrorTime, previousErrorTime, lastReconnectTime);
                     }
@@ -138,7 +138,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             }
             else
             {
-                LogUtility.LogInfo(
+                LogUtility.LogDebug(
                     "ForceReconnect delay due to current min frequency: {0}s, lastConnect at {1:hh\\:mm\\:ss}", reconnectMinFrequency.TotalSeconds, lastReconnectTime);
             }
         }

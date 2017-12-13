@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using StackExchange.Redis;
 
@@ -27,12 +26,13 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         }
 
         private static Random random = new Random();
-        private static int times = 100;
         private static List<Interval> reconnectIntervals = new List<Interval>();
-        private static volatile bool isConnected = true; 
+        private static bool isConnected = false;
+        private static Interval interval = new Interval(); 
 
-        public static void DoTest()
+        public static void DoTest(int times)
         {
+            Initialize();
             while (reconnectIntervals.Count < times)
             {
                 SimulateWorkLoad();
@@ -52,12 +52,30 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 }
                 else
                 {
-                    ConnectionHelper.Connection.GetDatabase().StringGet(GetRandomString());
+                    String value = ConnectionHelper.Connection.GetDatabase().StringGet(GetRandomString());
+                    LogUtility.LogDebug("Current value is " + value);
                 }
+
+                if (!isConnected)
+                {
+                    interval.End();
+                    reconnectIntervals.Add(interval);
+                    isConnected = true;
+                    LogUtility.LogInfo("Connected.");
+                }
+
                 Thread.Sleep(TimeSpan.FromMilliseconds(2));
             }
-            catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
+            catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException || ex is RedisTimeoutException)
             {
+                if (isConnected)
+                {
+                    interval = new Interval();
+                    interval.Start();
+                    isConnected = false;
+                    LogUtility.LogInfo("Disconnected.");
+                }
+
                 ConnectionHelper.ForceReconnect();
             }
             catch (ObjectDisposedException)
@@ -70,19 +88,21 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         {
             SortedSet<TimeSpan> timeSpans = new SortedSet<TimeSpan>(reconnectIntervals.Select(interval => interval.EndTime - interval.StartTime).ToList());
 
-            Console.WriteLine("Min reconnect time: " + timeSpans.Min);
-            Console.WriteLine("Max reconnect time: " + timeSpans.Max);
-            Console.WriteLine("Avg reconnect time: " + timeSpans.Average());
+            Console.WriteLine("Min reconnect time in seconds: " + timeSpans.Min.Seconds);
+            Console.WriteLine("Max reconnect time in seconds: " + timeSpans.Max.Seconds);
+            Console.WriteLine("Avg reconnect time in seconds: " + timeSpans.Average(t => t.Seconds));
         }
 
+        // TODO: return random generated string
         private static string GetRandomString()
         {
-            return "";
+            return "foo";
         }
 
         private static void Initialize()
         {
             LogUtility.Logger = Console.Out;
+            LogUtility.Level = LogUtility.LogLevel.Info;
             ConnectionHelper.Initialize();
         }
     }

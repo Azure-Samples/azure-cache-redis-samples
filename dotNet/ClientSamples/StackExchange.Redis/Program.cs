@@ -1,10 +1,12 @@
-﻿namespace DotNet.ClientSamples.StackExchange.Redis
+﻿
+namespace DotNet.ClientSamples.StackExchange.Redis
 {
     class Program
     {
         public static void Main(string[] args)
         {
-            ForceReconnectSample.ForceReconnect();
+            int times = int.Parse(args[0]);
+            Benchmark.DoTest(times);
         }
     }
 }
