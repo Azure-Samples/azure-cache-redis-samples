@@ -23,11 +23,21 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             {
                 EndTime = DateTime.Now;
             }
+
+            public TimeSpan GeTimeSpan()
+            {
+                return EndTime - StartTime;
+            }
+
+            public override string ToString()
+            {
+                return $"[{StartTime}, {EndTime}, {GeTimeSpan()}]";
+            }
         }
 
         private static Random random = new Random();
         private static List<Interval> reconnectIntervals = new List<Interval>();
-        private static bool isConnected = false;
+        private static bool isConnected = true;
         private static Interval interval = new Interval(); 
 
         public static void DoTest(int times)
@@ -38,7 +48,6 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 SimulateWorkLoad();
             }
 
-            PrintResult();
         }
 
         // 70% read, 30% write
@@ -62,6 +71,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     reconnectIntervals.Add(interval);
                     isConnected = true;
                     LogUtility.LogInfo("Connected.");
+                    PrintResult();
                 }
 
                 Thread.Sleep(TimeSpan.FromMilliseconds(2));
@@ -86,11 +96,19 @@ namespace DotNet.ClientSamples.StackExchange.Redis
 
         private static void PrintResult()
         {
-            SortedSet<TimeSpan> timeSpans = new SortedSet<TimeSpan>(reconnectIntervals.Select(interval => interval.EndTime - interval.StartTime).ToList());
+            List<TimeSpan> timeSpans = reconnectIntervals.Select(i => i.GeTimeSpan()).ToList();
+            timeSpans.Sort();
+            int sizePlusOne = timeSpans.Count + 1;
 
-            Console.WriteLine("Min reconnect time in seconds: " + timeSpans.Min.Seconds);
-            Console.WriteLine("Max reconnect time in seconds: " + timeSpans.Max.Seconds);
-            Console.WriteLine("Avg reconnect time in seconds: " + timeSpans.Average(t => t.Seconds));
+            LogUtility.LogInfo("Connect intervals are " + string.Join(", ", reconnectIntervals));
+            LogUtility.LogInfo("50 % <= reconnect time in seconds: " + timeSpans[sizePlusOne / 2 - 1]);
+            LogUtility.LogInfo("90 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 90 / 100 - 1]);
+            LogUtility.LogInfo("95 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 95 / 100 - 1]);
+            LogUtility.LogInfo("99 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 99 / 100 - 1]);
+            LogUtility.LogInfo("99.9 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 999 / 1000 - 1]);
+            LogUtility.LogInfo("Min reconnect time in seconds: " + timeSpans.First().TotalSeconds);
+            LogUtility.LogInfo("Max reconnect time in seconds: " + timeSpans.Last().TotalSeconds);
+            LogUtility.LogInfo("Avg reconnect time in seconds: " + timeSpans.Average(t => t.TotalSeconds));
         }
 
         // TODO: return random generated string

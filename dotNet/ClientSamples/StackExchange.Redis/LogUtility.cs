@@ -54,7 +54,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             if (Logger != null)
             {
                 string msgToPrint = (args.Length > 0) ? string.Format(msg, args) : msg;
-                Logger.WriteLine("[{0}][{1}] - {2}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture), level, msgToPrint);
+                Logger.WriteLine("[{0}] - [{1}] - {2}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture), level, msgToPrint);
             }
         }
     } 
