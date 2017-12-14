@@ -65,32 +65,45 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                     LogUtility.LogDebug("Current value is " + value);
                 }
 
-                if (!isConnected)
-                {
-                    interval.End();
-                    reconnectIntervals.Add(interval);
-                    isConnected = true;
-                    LogUtility.LogInfo("Connected.");
-                    PrintResult();
-                }
-
+                CheckUnconnected();
+                // Max operation will be 1000 / 2 = 500
                 Thread.Sleep(TimeSpan.FromMilliseconds(2));
             }
-            catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException || ex is RedisTimeoutException)
+            catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
             {
-                if (isConnected)
-                {
-                    interval = new Interval();
-                    interval.Start();
-                    isConnected = false;
-                    LogUtility.LogInfo("Disconnected.");
-                }
-
+                CheckConnected();
                 ConnectionHelper.ForceReconnect();
             }
             catch (ObjectDisposedException)
             {
                 LogUtility.LogInfo("Retry later since reconnection is in progress");
+            }
+            catch (RedisTimeoutException)
+            {
+                LogUtility.LogDebug("Timeout when performing an operation");
+            }
+        }
+
+        private static void CheckUnconnected()
+        {
+            if (!isConnected)
+            {
+                interval.End();
+                reconnectIntervals.Add(interval);
+                isConnected = true;
+                LogUtility.LogInfo("Connected.");
+                PrintResult();
+            }
+        }
+
+        private static void CheckConnected()
+        {
+            if (isConnected)
+            {
+                interval = new Interval();
+                interval.Start();
+                isConnected = false;
+                LogUtility.LogInfo("Disconnected.");
             }
         }
 
@@ -100,6 +113,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             timeSpans.Sort();
             int sizePlusOne = timeSpans.Count + 1;
 
+            LogUtility.LogInfo($"{reconnectIntervals.Count} tests ran");
             LogUtility.LogInfo("Connect intervals are " + string.Join(", ", reconnectIntervals));
             LogUtility.LogInfo("50 % <= reconnect time in seconds: " + timeSpans[sizePlusOne / 2 - 1]);
             LogUtility.LogInfo("90 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 90 / 100 - 1]);
