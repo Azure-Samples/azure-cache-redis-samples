@@ -5,7 +5,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
     {
         public static void Main(string[] args)
         {
-            Benchmark.Benchmark.Test(args);
+            Benchmark.ReconnectBenchmark.Test(args);
         }
     }
 }

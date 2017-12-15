@@ -31,12 +31,17 @@ namespace DotNet.ClientSamples.StackExchange.Redis.Benchmark
         private static void ParseOptions(string[] args)
         {
             var options = new BenchmarkOptions();
-            if (Parser.Default.ParseArgumentsStrict(args, options, () => Environment.Exit(-2)))
+            if (Parser.Default.ParseArgumentsStrict(args, options, () =>
+            {
+                Console.WriteLine(options.GetUsage());
+                Environment.Exit(-2);
+            }
+            ))
             {
                 ReconnectBenchmark.options = options;
                 LogUtility.LogInfo("Start testing ...");
             }
-            Console.WriteLine(options.GetUsage());
+            
         }
 
         // 70% read, 30% write
@@ -70,6 +75,11 @@ namespace DotNet.ClientSamples.StackExchange.Redis.Benchmark
             {
                 LogUtility.LogDebug("Timeout when performing an operation");
             }
+            catch (Exception e)
+            {
+                LogUtility.LogError("Exception thrown", e);
+            }
+
         }
 
         // Sleep to make sure not exceed max operations per second

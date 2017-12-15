@@ -56,7 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchmark\Benchmark.cs" />
+    <Compile Include="Benchmark\ReconnectBenchmark.cs" />
     <Compile Include="Benchmark\BenchmarkOptions.cs" />
     <Compile Include="Benchmark\Interval.cs" />
     <Compile Include="ForceReconnectSample.cs" />
