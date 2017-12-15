@@ -5,8 +5,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
     {
         public static void Main(string[] args)
         {
-            int times = int.Parse(args[0]);
-            Benchmark.DoTest(times);
+            Benchmark.Benchmark.Test(args);
         }
     }
 }

@@ -3,55 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using CommandLine;
 using StackExchange.Redis;
 
-namespace DotNet.ClientSamples.StackExchange.Redis
+namespace DotNet.ClientSamples.StackExchange.Redis.Benchmark
 {
-    class Benchmark
+    class ReconnectBenchmark
     {
-        class Interval
+        private static readonly Random random = new Random();
+        private static readonly List<Interval> reconnectIntervals = new List<Interval>();
+        private static volatile bool isConnected = true;
+        private static volatile Interval interval = new Interval();
+        private static BenchmarkOptions options;
+
+        public static void Test(string[] args)
         {
-            public DateTime StartTime { get; private set; }
-            public DateTime EndTime { get; private set; }
-
-            public void Start()
+            Initialize(args);
+            while (reconnectIntervals.Count < options.NumberTests)
             {
-                StartTime = DateTime.Now; 
+                SimulateWorkload();
             }
 
-            public void End()
-            {
-                EndTime = DateTime.Now;
-            }
-
-            public TimeSpan GeTimeSpan()
-            {
-                return EndTime - StartTime;
-            }
-
-            public override string ToString()
-            {
-                return $"[{StartTime}, {EndTime}, {GeTimeSpan()}]";
-            }
+            LogUtility.LogInfo("Test finished.");
+            PrintResult();
         }
 
-        private static Random random = new Random();
-        private static List<Interval> reconnectIntervals = new List<Interval>();
-        private static bool isConnected = true;
-        private static Interval interval = new Interval(); 
-
-        public static void DoTest(int times)
+        private static void ParseOptions(string[] args)
         {
-            Initialize();
-            while (reconnectIntervals.Count < times)
+            var options = new BenchmarkOptions();
+            if (Parser.Default.ParseArgumentsStrict(args, options, () => Environment.Exit(-2)))
             {
-                SimulateWorkLoad();
+                ReconnectBenchmark.options = options;
+                LogUtility.LogInfo("Start testing ...");
             }
-
+            Console.WriteLine(options.GetUsage());
         }
 
         // 70% read, 30% write
-        private static void SimulateWorkLoad()
+        private static void SimulateWorkload()
         {
             try
             {
@@ -66,8 +55,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 }
 
                 CheckUnconnected();
-                // Max operation will be 1000 / 2 = 500
-                Thread.Sleep(TimeSpan.FromMilliseconds(2));
+                SleepIfNecessary();
             }
             catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
             {
@@ -84,6 +72,15 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             }
         }
 
+        // Sleep to make sure not exceed max operations per second
+        private static void SleepIfNecessary()
+        {
+            if (options.MaxOperationsPerSecond >= 0)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(1000.0 / options.MaxOperationsPerSecond));
+            }
+        }
+
         private static void CheckUnconnected()
         {
             if (!isConnected)
@@ -91,8 +88,12 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 interval.End();
                 reconnectIntervals.Add(interval);
                 isConnected = true;
-                LogUtility.LogInfo("Connected.");
-                PrintResult();
+
+                if (options.Verbose)
+                {
+                    LogUtility.LogInfo("Connected.");
+                    PrintResult();
+                }
             }
         }
 
@@ -103,26 +104,32 @@ namespace DotNet.ClientSamples.StackExchange.Redis
                 interval = new Interval();
                 interval.Start();
                 isConnected = false;
-                LogUtility.LogInfo("Disconnected.");
+
+                if (options.Verbose)
+                {
+                    LogUtility.LogInfo("Disconnected.");
+                }
             }
         }
 
         private static void PrintResult()
         {
-            List<TimeSpan> timeSpans = reconnectIntervals.Select(i => i.GeTimeSpan()).ToList();
+            List<TimeSpan> timeSpans = reconnectIntervals.Select(i => i.GetTimeSpan()).ToList();
             timeSpans.Sort();
-            int sizePlusOne = timeSpans.Count + 1;
 
             LogUtility.LogInfo($"{reconnectIntervals.Count} tests ran");
             LogUtility.LogInfo("Connect intervals are " + string.Join(", ", reconnectIntervals));
-            LogUtility.LogInfo("50 % <= reconnect time in seconds: " + timeSpans[sizePlusOne / 2 - 1]);
-            LogUtility.LogInfo("90 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 90 / 100 - 1]);
-            LogUtility.LogInfo("95 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 95 / 100 - 1]);
-            LogUtility.LogInfo("99 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 99 / 100 - 1]);
-            LogUtility.LogInfo("99.9 % <= reconnect time in seconds: " + timeSpans[sizePlusOne * 999 / 1000 - 1]);
             LogUtility.LogInfo("Min reconnect time in seconds: " + timeSpans.First().TotalSeconds);
             LogUtility.LogInfo("Max reconnect time in seconds: " + timeSpans.Last().TotalSeconds);
             LogUtility.LogInfo("Avg reconnect time in seconds: " + timeSpans.Average(t => t.TotalSeconds));
+
+            int[] percentiles = {50, 90, 95, 99};
+
+            foreach (var percentile in percentiles)
+            {
+                LogUtility.LogInfo(
+                    $"{percentile} % <= reconnect time in seconds: {timeSpans[(timeSpans.Count + 1) * percentile / 100 - 1]} ");
+            }
         }
 
         // TODO: return random generated string
@@ -131,10 +138,11 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             return "foo";
         }
 
-        private static void Initialize()
+        private static void Initialize(string[] args)
         {
             LogUtility.Logger = Console.Out;
             LogUtility.Level = LogUtility.LogLevel.Info;
+            ParseOptions(args);
             ConnectionHelper.Initialize();
         }
     }
