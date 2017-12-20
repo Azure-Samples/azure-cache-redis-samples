@@ -45,7 +45,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
         {
             if (Level >= LogLevel.Debug)
             {
-                Log(LogLevel.Info, msg, args);
+                Log(LogLevel.Debug, msg, args);
             }
         }
 
