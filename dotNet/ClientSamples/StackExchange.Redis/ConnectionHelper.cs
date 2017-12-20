@@ -166,7 +166,7 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             try
             {
                 LogUtility.LogInfo("ForceReconnect to close old multiplexer...");
-                multiplexer.Value.Close();
+                multiplexer.Value.Close(false);
                 LogUtility.LogInfo("ForceReconnect closed old multiplexer");
             }
             catch (Exception e)
