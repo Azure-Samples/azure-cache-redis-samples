@@ -28,6 +28,10 @@ namespace DotNet.ClientSamples.StackExchange.Redis
             {
                 LogUtility.LogInfo("Retry later since reconnection is in progress");
             }
+            catch (NullReferenceException)
+            {
+                //Ignore due to Stackexchange.Redis bug https://github.com/StackExchange/StackExchange.Redis/issues/424
+            }
         }
 
         private static void InitLogger()
