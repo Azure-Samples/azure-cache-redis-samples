@@ -1,12 +1,13 @@
 package com.microsoft.azure.redis.jedis.pool;
 
+import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 
 public class JedisPoolFactory {
-    private JedisPoolConfiguration configuration;
+    private JedisConfiguration configuration;
 
-    public JedisPoolFactory(JedisPoolConfiguration configuration) {
+    public JedisPoolFactory(JedisConfiguration configuration) {
         this.configuration = configuration;
     }
 

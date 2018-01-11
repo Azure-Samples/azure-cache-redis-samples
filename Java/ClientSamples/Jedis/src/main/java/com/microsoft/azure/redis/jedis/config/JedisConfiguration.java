@@ -1,5 +1,6 @@
-package com.microsoft.azure.redis.jedis.pool;
+package com.microsoft.azure.redis.jedis.config;
 
+import com.microsoft.azure.redis.jedis.pool.JedisPoolFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.JedisPoolConfig;
@@ -21,8 +22,8 @@ import java.util.Properties;
  *
  * @author Zhongwei Zhu
  */
-public class JedisPoolConfiguration {
-	private static final Logger logger = Logger.getLogger(JedisPoolConfiguration.class);
+public class JedisConfiguration {
+	private static final Logger logger = Logger.getLogger(JedisConfiguration.class);
 	private final Map<String, String> configs = new HashMap<>();
 	private static final int SSL_PORT = 6380;
 	private static final int NON_SSL_PORT = 6379;
@@ -31,8 +32,8 @@ public class JedisPoolConfiguration {
 	private final Optional<HostnameVerifier> hostnameVerifier;
 	private final GenericObjectPoolConfig poolConfig;
 
-	JedisPoolConfiguration(String propertyFilePath, SSLSocketFactory sslSocketFactory,
-						   SSLParameters sslParameters, HostnameVerifier hostnameVerifier) {
+	JedisConfiguration(String propertyFilePath, SSLSocketFactory sslSocketFactory,
+					   SSLParameters sslParameters, HostnameVerifier hostnameVerifier) {
 		Properties properties = new Properties();
 
 		try (InputStream input = getClass().getClassLoader().getResourceAsStream(propertyFilePath)) {
@@ -128,7 +129,7 @@ public class JedisPoolConfiguration {
 		return poolConfig;
 	}
 
-	static class JedisPoolConfigurationBuilder {
+	public static class JedisPoolConfigurationBuilder {
 
 		private static final String DEFAULT_PROPERTY_FILE_NAME = "redis.properties";
 		private SSLSocketFactory sslSocketFactory;
@@ -158,12 +159,12 @@ public class JedisPoolConfiguration {
 			return this;
 		}
 
-		public JedisPoolConfiguration build() {
+		public JedisConfiguration build() {
 			if(propertyFilePath == null || propertyFilePath.isEmpty()){
 				propertyFilePath = DEFAULT_PROPERTY_FILE_NAME;
 			}
 
-			return new JedisPoolConfiguration(propertyFilePath, sslSocketFactory, sslParameters, hostnameVerifier);
+			return new JedisConfiguration(propertyFilePath, sslSocketFactory, sslParameters, hostnameVerifier);
 		}
 	}
 

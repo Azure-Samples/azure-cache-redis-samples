@@ -1,15 +1,16 @@
 package com.microsoft.azure.redis.jedis.pool;
 
+import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.JedisPool;
 
 public class JedisPoolHelper {
     private static JedisPool jedisPool;
     private static JedisPoolFactory jedisPoolFactory;
-    private static JedisPoolConfiguration jedisClientConfiguration;
+    private static JedisConfiguration jedisClientConfiguration;
 
     static {
-        jedisClientConfiguration = JedisPoolConfiguration.builder().build();
+        jedisClientConfiguration = JedisConfiguration.builder().build();
         jedisPoolFactory = new JedisPoolFactory(jedisClientConfiguration);
         jedisPool = jedisPoolFactory.createJedisPool();
     }
@@ -40,7 +41,7 @@ public class JedisPoolHelper {
         return jedisPoolFactory;
     }
 
-    public static JedisPoolConfiguration getJedisClientConfiguration() {
+    public static JedisConfiguration getJedisClientConfiguration() {
         return jedisClientConfiguration;
     }
 }
