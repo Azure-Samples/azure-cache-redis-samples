@@ -1,6 +1,7 @@
-package com.microsoft.azure.redis.jedis.pool.test;
+package com.azure.jedis.pool.test;
 
-import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
+import com.azure.jedis.example.JedisPoolSample;
+import com.azure.jedis.pool.JedisPoolHelper;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -14,8 +15,8 @@ public class JedisPoolTest {
         IntStream.range(0, 10).parallel().forEach((i) ->
         {
             while(true) {
-                try {
-                    simpleSetGet();
+                try (Jedis jedis = JedisPoolHelper.getJedis()){
+                    JedisPoolSample.simpleSetGet(jedis);
                     Thread.sleep(10 * 1000);
                 } catch (JedisConnectionException e) {
                     e.printStackTrace();
@@ -26,14 +27,6 @@ public class JedisPoolTest {
         });
     }
 
-    public static void simpleSetGet(){
-        try(Jedis jedis = JedisPoolHelper.getPool().getResource()){
-            String key = "foo";
-            String value = "bar";
 
-            jedis.set(key, value);
-            System.out.print(jedis.get(key));
-        }
-    }
 
 }
