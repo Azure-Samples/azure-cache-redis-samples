@@ -1,10 +1,14 @@
 package com.microsoft.azure.redis.jedis.benchmark;
 
 import com.beust.jcommander.JCommander;
+import com.microsoft.azure.redis.jedis.cluster.JedisClusterHelper;
 import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.*;
@@ -19,6 +23,8 @@ public class ReconnectBenchmark {
     private final Queue<Interval> intervals = new ConcurrentLinkedQueue<>();
     private static final String DEFAULT_STRING = "foo";
     private final BenchmarkArgs args;
+    private static JedisPool jedisPool;
+    private static JedisCluster jedisCluster;
 
     public ReconnectBenchmark(BenchmarkArgs args) {
         this.args = args;
@@ -34,21 +40,46 @@ public class ReconnectBenchmark {
     }
 
     public void runTest(){
+        logger.info("Start to test...");
+        if(args.isCluster){
+            jedisCluster = JedisClusterHelper.getCluster(args.configFilePath);
+        } else {
+            jedisPool = JedisPoolHelper.getPool(args.configFilePath);
+        }
         while(intervals.size() < args.numberOfTests){
-            simulateWorkload();
+            if(args.isCluster){
+                simulateClusterWorkload(jedisCluster);
+            } else {
+                simulatePoolWorkload(jedisPool);
+            }
         }
 
         logResult();
     }
 
     // 70% read, 30% write
-    private void simulateWorkload(){
-        try(Jedis jedis = JedisPoolHelper.getPool().getResource()){
-            if(random.nextInt(10) <= 3){
-                jedis.set(getString(), getString());
-            } else {
-                jedis.get(getString());
-            }
+    private void simulateWorkload(JedisCommands jedis){
+        if(random.nextInt(10) <= 3){
+            jedis.set(getString(), getString());
+        } else {
+            jedis.get(getString());
+        }
+    }
+
+    private void simulateClusterWorkload(JedisCluster jedisCluster){
+        try{
+            simulateWorkload(jedisCluster);
+
+            checkUnconnected();
+            sleepIfNecessary();
+        } catch (JedisConnectionException e){
+            checkConnected();
+        }
+    }
+
+    private void simulatePoolWorkload(JedisPool jedisPool){
+        try(Jedis jedis = jedisPool.getResource()){
+            simulateWorkload(jedis);
 
             checkUnconnected();
             sleepIfNecessary();
@@ -97,7 +128,6 @@ public class ReconnectBenchmark {
 
         logger.info("Intervals are " + intervals.stream().map(Object::toString).collect(Collectors.joining(",")));
         logger.info("Total tests: " + summaryStatistics.getCount());
-        logger.info("Pool usage:" + JedisPoolHelper.getPoolStatistics());
         logger.info("Average (Seconds): " + summaryStatistics.getAverage() / 1000.0);
         logger.info("Min (Seconds): " + summaryStatistics.getMin() / 1000.0);
         logger.info("Max (Seconds): " + summaryStatistics.getMax() / 1000.0);

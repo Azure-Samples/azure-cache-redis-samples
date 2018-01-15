@@ -29,7 +29,6 @@ public class JedisPoolSample {
         } catch (JedisConnectionException e){
             logger.warn("Failed to connect to Jedis server: ", e);
             logger.info(MetricsUtil.getSystemMetrics());
-            logger.info(JedisPoolHelper.getPoolStatistics());
         }
     }
 }

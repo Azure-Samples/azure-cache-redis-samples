@@ -1,12 +1,14 @@
 package com.microsoft.azure.redis.jedis.test;
 
 import com.microsoft.azure.redis.jedis.cluster.JedisClusterHelper;
+import org.junit.Ignore;
 import org.junit.Test;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.stream.IntStream;
 
+@Ignore
 public class JedisClusterTest {
 
     @Test
@@ -28,7 +30,7 @@ public class JedisClusterTest {
             String value = "bar";
 
             jedis.set(key, value);
-            System.out.print(jedis.get(key));
+            System.out.println(jedis.get(key));
     }
 
 }

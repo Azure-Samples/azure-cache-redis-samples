@@ -5,43 +5,14 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.JedisPool;
 
 public class JedisPoolHelper {
-    private static JedisPool jedisPool;
-    private static JedisPoolFactory jedisPoolFactory;
-    private static JedisConfiguration jedisClientConfiguration;
 
-    static {
-        jedisClientConfiguration = JedisConfiguration.builder().build();
-        jedisPoolFactory = new JedisPoolFactory(jedisClientConfiguration);
-        jedisPool = jedisPoolFactory.createJedisPool();
+    public static JedisPool getPool(){
+        return getPool(null);
     }
 
-    public static JedisPool getPool() {
-        return jedisPool;
-    }
-
-    public static String getPoolStatistics() {
-        int active = jedisPool.getNumActive();
-        int idle = jedisPool.getNumIdle();
-        int total = active + idle;
-        GenericObjectPoolConfig poolConfig = jedisClientConfiguration.getPoolConfig();
-        return String.format(
-                "JedisPool: Active=%d, Idle=%d, Waiters=%d, total=%d, maxTotal=%d, minIdle=%d, maxIdle=%d",
-                active,
-                idle,
-                jedisPool.getNumWaiters(),
-                total,
-                poolConfig.getMaxTotal(),
-                poolConfig.getMinIdle(),
-                poolConfig.getMaxIdle()
-        );
-
-    }
-
-    public static JedisPoolFactory getJedisPoolFactory() {
-        return jedisPoolFactory;
-    }
-
-    public static JedisConfiguration getJedisClientConfiguration() {
-        return jedisClientConfiguration;
+    public static JedisPool getPool(String configFilePath){
+        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().propertyFile(configFilePath).build();
+        JedisPoolFactory jedisPoolFactory = new JedisPoolFactory(jedisClientConfiguration);
+        return jedisPoolFactory.createJedisPool();
     }
 }

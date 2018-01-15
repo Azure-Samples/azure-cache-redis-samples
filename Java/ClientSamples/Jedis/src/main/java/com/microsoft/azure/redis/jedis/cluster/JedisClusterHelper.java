@@ -4,25 +4,16 @@ import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
 import redis.clients.jedis.JedisCluster;
 
 public class JedisClusterHelper {
-    private static JedisCluster jedisCluster;
-    private static JedisClusterFactory jedisClusterFactory;
-    private static JedisConfiguration jedisClientConfiguration;
-
-    static {
-        jedisClientConfiguration = JedisConfiguration.builder().build();
-        jedisClusterFactory = new JedisClusterFactory(jedisClientConfiguration);
-        jedisCluster = jedisClusterFactory.createJedisCluster();
-    }
-
     public static JedisCluster getCluster() {
-        return jedisCluster;
+        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().build();
+        JedisClusterFactory jedisClusterFactory = new JedisClusterFactory(jedisClientConfiguration);
+        return jedisClusterFactory.createJedisCluster();
     }
 
-    public static JedisClusterFactory getJedisClusterFactory() {
-        return jedisClusterFactory;
+    public static JedisCluster getCluster(String configFilePath){
+        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().propertyFile(configFilePath).build();
+        JedisClusterFactory jedisClusterFactory = new JedisClusterFactory(jedisClientConfiguration);
+        return jedisClusterFactory.createJedisCluster();
     }
-
-    public static JedisConfiguration getJedisClientConfiguration() {
-        return jedisClientConfiguration;
-    }
+    
 }
