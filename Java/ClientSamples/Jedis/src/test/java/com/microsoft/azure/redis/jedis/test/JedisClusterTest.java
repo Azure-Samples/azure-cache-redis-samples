@@ -3,7 +3,8 @@ package com.microsoft.azure.redis.jedis.test;
 import com.microsoft.azure.redis.jedis.cluster.JedisClusterHelper;
 import org.junit.Ignore;
 import org.junit.Test;
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.commands.JedisClusterCommands;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.stream.IntStream;
@@ -25,7 +26,7 @@ public class JedisClusterTest {
         });
     }
 
-    public static void simpleSetGet(JedisCommands jedis){
+    public static void simpleSetGet(JedisClusterCommands jedis){
             String key = "foo";
             String value = "bar";
 

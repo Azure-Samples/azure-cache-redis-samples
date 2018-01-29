@@ -4,7 +4,7 @@ import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
 import org.junit.Ignore;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.commands.JedisCommands;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.stream.IntStream;

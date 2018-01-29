@@ -7,7 +7,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
@@ -42,15 +41,19 @@ public class ReconnectBenchmark {
     public void runTest(){
         logger.info("Start to test...");
         if(args.isCluster){
+            logger.info("Cluster mode");
             jedisCluster = JedisClusterHelper.getCluster(args.configFilePath);
+            logger.info(JedisClusterHelper.getClusterConfig(jedisCluster));
         } else {
+            logger.info("Pool mode");
             jedisPool = JedisPoolHelper.getPool(args.configFilePath);
+            logger.info(JedisPoolHelper.getPoolConfig(jedisPool));
         }
         while(intervals.size() < args.numberOfTests){
             if(args.isCluster){
-                simulateClusterWorkload(jedisCluster);
+                simulateClusterWorkload();
             } else {
-                simulatePoolWorkload(jedisPool);
+                simulatePoolWorkload();
             }
         }
 
@@ -58,7 +61,7 @@ public class ReconnectBenchmark {
     }
 
     // 70% read, 30% write
-    private void simulateWorkload(JedisCommands jedis){
+    private void simulateWorkload(JedisCluster jedis){
         if(random.nextInt(10) <= 3){
             jedis.set(getString(), getString());
         } else {
@@ -66,18 +69,33 @@ public class ReconnectBenchmark {
         }
     }
 
-    private void simulateClusterWorkload(JedisCluster jedisCluster){
+    private void simulateWorkload(Jedis jedis){
+        if(random.nextInt(10) <= 3){
+            jedis.set(getString(), getString());
+        } else {
+            jedis.get(getString());
+        }
+    }
+
+    private void simulateClusterWorkload(){
+        long startTime = System.currentTimeMillis();
         try{
             simulateWorkload(jedisCluster);
 
             checkUnconnected();
             sleepIfNecessary();
         } catch (JedisConnectionException e){
+            long duration = (System.currentTimeMillis() - startTime);
+            if(duration > 1000){
+                logger.info("GET or SET spent " + duration);
+            }
             checkConnected();
+
+            logger.info(JedisClusterHelper.getClusterUsage(jedisCluster));
         }
     }
 
-    private void simulatePoolWorkload(JedisPool jedisPool){
+    private void simulatePoolWorkload(){
         try(Jedis jedis = jedisPool.getResource()){
             simulateWorkload(jedis);
 
@@ -85,6 +103,7 @@ public class ReconnectBenchmark {
             sleepIfNecessary();
         } catch (JedisConnectionException e){
             checkConnected();
+            logger.info(JedisPoolHelper.getPoolUsage(jedisPool));
         }
     }
 

@@ -21,12 +21,14 @@ public class BenchmarkArgs
     @Parameter(names = "-cluster", description = "Cluster mode (default false)")
     public boolean isCluster = false;
 
+    @Parameter(names = "-ssl", description = "Use ssl (default false)")
+    public boolean useSsl = false;
+
     @Parameter(names = "-d", description = "Data size of SET/GET value in bytes (default 2)")
     public Integer dataSizeInBytes = 2;
 
     @Parameter(names = "-file", description = "Config file path")
-    public String configFilePath;
-
+    public String configFilePath = "";
 
     /* Unsupported
     @Parameter(names = "-t", description = "Number of threads (default 1)")

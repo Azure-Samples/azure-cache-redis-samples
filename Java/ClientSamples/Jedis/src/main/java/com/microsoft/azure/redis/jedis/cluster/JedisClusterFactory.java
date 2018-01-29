@@ -4,10 +4,6 @@ import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 public class JedisClusterFactory {
     private JedisConfiguration configuration;
 
@@ -16,8 +12,8 @@ public class JedisClusterFactory {
     }
 
     public JedisCluster createJedisCluster(){
-        Set<HostAndPort> clusterNodes = new HashSet<>(Arrays.asList(new HostAndPort(configuration.getHostName(), configuration.getPort())));
+        HostAndPort clusterNode = new HostAndPort(configuration.getHostName(), configuration.getPort());
 
-        return new JedisCluster(clusterNodes, (int)configuration.getConnectTimeout().toMillis(), (int)configuration.getOperationTimeout().toMillis(), 5, configuration.getPassword(), configuration.getPoolConfig());
+        return new JedisCluster(clusterNode, (int)configuration.getConnectTimeout().toMillis(), (int)configuration.getOperationTimeout().toMillis(), configuration.getRetryCount(), configuration.getPassword(), configuration.getClientName().toString(), configuration.getPoolConfig(), configuration.isUseSsl());
     }
 }

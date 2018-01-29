@@ -1,15 +1,14 @@
 package com.microsoft.azure.redis.jedis.config;
 
+import com.beust.jcommander.Strings;
 import com.microsoft.azure.redis.jedis.pool.JedisPoolFactory;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.JedisPoolConfig;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,36 +19,55 @@ import java.util.Properties;
  * Jedis pool Configuration class used for setting up {@link redis.clients.jedis.JedisPool} via {@link JedisPoolFactory} using connecting
  * to a single node <a href="http://redis.io/">Redis</a> installation.
  *
- * @author Zhongwei Zhu
  */
 public class JedisConfiguration {
 	private static final Logger logger = Logger.getLogger(JedisConfiguration.class);
 	private final Map<String, String> configs = new HashMap<>();
 	private static final int SSL_PORT = 6380;
 	private static final int NON_SSL_PORT = 6379;
+	private static final String DEFAULT_PROPERTY_FILE_NAME = "redis.properties";
 	private final Optional<SSLSocketFactory> sslSocketFactory;
 	private final Optional<SSLParameters> sslParameters;
 	private final Optional<HostnameVerifier> hostnameVerifier;
-	private final GenericObjectPoolConfig poolConfig;
+	private Optional<String> propertyFilePath;
+	private final JedisPoolConfig poolConfig;
 
-	JedisConfiguration(String propertyFilePath, SSLSocketFactory sslSocketFactory,
+	public JedisConfiguration(Optional<String> propertyFilePath, SSLSocketFactory sslSocketFactory,
 					   SSLParameters sslParameters, HostnameVerifier hostnameVerifier) {
+		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
+		this.sslParameters = Optional.ofNullable(sslParameters);
+		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
+		this.propertyFilePath = propertyFilePath;
+		loadConfig();
+		validate();
+		this.poolConfig = buildPoolConfig();
+	}
+
+	private void loadConfig(){
 		Properties properties = new Properties();
 
-		try (InputStream input = getClass().getClassLoader().getResourceAsStream(propertyFilePath)) {
+		try (InputStream input = getPropertyStream()){
 			properties.load(input);
 			for (RedisConfigKey key : RedisConfigKey.values()) {
 				configs.put(key.getKey(), properties.getProperty(key.getKey(), key.getDefaultValue()));
 			}
 
+			logger.info("Configs are " + configs);
+
 		} catch (IOException e) {
 			logger.error("Failed to load redis config from file.", e);
 		}
-		validate();
-		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
-		this.sslParameters = Optional.ofNullable(sslParameters);
-		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
-		this.poolConfig = buildPoolConfig();
+	}
+
+	private InputStream getPropertyStream() throws FileNotFoundException {
+		if(!propertyFilePath.isPresent() || Strings.isStringEmpty(propertyFilePath.get())){
+			logger.info("Load property from file " + DEFAULT_PROPERTY_FILE_NAME);
+			return getClass().getClassLoader().getResourceAsStream(DEFAULT_PROPERTY_FILE_NAME);
+		} else {
+			logger.info("Load property from file " + propertyFilePath.get());
+			return new FileInputStream(String.format("./%s",propertyFilePath.get()));
+
+		}
 	}
 
 	public String getHostName() {
@@ -76,7 +94,7 @@ public class JedisConfiguration {
 		return hostnameVerifier;
 	}
 
-	public GenericObjectPoolConfig getPoolConfig() {
+	public JedisPoolConfig getPoolConfig() {
 		return poolConfig;
 	}
 
@@ -94,6 +112,10 @@ public class JedisConfiguration {
 
 	public String getPassword() {
 		return configs.get(RedisConfigKey.PASSWORD.getKey());
+	}
+
+	public int getRetryCount() {
+		return Integer.parseInt(configs.get(RedisConfigKey.CONNECT_RETRY.getKey()));
 	}
 
 	public static JedisPoolConfigurationBuilder builder() {
@@ -130,12 +152,10 @@ public class JedisConfiguration {
 	}
 
 	public static class JedisPoolConfigurationBuilder {
-
-		private static final String DEFAULT_PROPERTY_FILE_NAME = "redis.properties";
 		private SSLSocketFactory sslSocketFactory;
 		private SSLParameters sslParameters;
 		private HostnameVerifier hostnameVerifier;
-		private String propertyFilePath;
+		private Optional<String> propertyFilePath = Optional.empty();
 
 		private JedisPoolConfigurationBuilder() {}
 
@@ -155,14 +175,11 @@ public class JedisConfiguration {
 		}
 
 		public JedisPoolConfigurationBuilder propertyFile(String path) {
-			this.propertyFilePath = path;
+			this.propertyFilePath = Optional.of(path);
 			return this;
 		}
 
 		public JedisConfiguration build() {
-			if(propertyFilePath == null || propertyFilePath.isEmpty()){
-				propertyFilePath = DEFAULT_PROPERTY_FILE_NAME;
-			}
 
 			return new JedisConfiguration(propertyFilePath, sslSocketFactory, sslParameters, hostnameVerifier);
 		}
