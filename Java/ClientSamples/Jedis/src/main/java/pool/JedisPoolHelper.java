@@ -1,4 +1,4 @@
-package com.azure.jedis.pool;
+package pool;
 
 import com.sun.management.OperatingSystemMXBean;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -28,7 +28,7 @@ public class JedisPoolHelper {
     // How long to allow for new connections to be established
     // In general, this should be at least 5000.
     // If client has high spikes CPU usage, set to 15000 or 20000
-    private final static int CONNECT_TIMEOUT_MILLS = 15000;
+    private final static int CONNECT_TIMEOUT_MILLS = 5000;
 
     // How long you are willing to wait for a response from Redis
     // Recommend 1000
