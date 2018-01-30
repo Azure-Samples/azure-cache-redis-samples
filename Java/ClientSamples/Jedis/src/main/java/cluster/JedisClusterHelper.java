@@ -1,9 +1,8 @@
-package com.microsoft.azure.redis.jedis.cluster;
+package cluster;
 
-import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
-import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
+import config.JedisConfiguration;
+import pool.JedisHelper;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 import java.util.stream.Collectors;
 
@@ -21,11 +20,11 @@ public class JedisClusterHelper {
     }
 
     public static String getClusterUsage(JedisCluster jedisCluster){
-        return jedisCluster.getClusterNodes().entrySet().stream().map(e -> e.getKey() + ":" + JedisPoolHelper.getPoolUsage(e.getValue())).collect(Collectors.joining(", "));
+        return jedisCluster.getClusterNodes().entrySet().stream().map(e -> e.getKey() + ":" + JedisHelper.getPoolUsage(e.getValue())).collect(Collectors.joining(", "));
     }
 
     public static String getClusterConfig(JedisCluster jedisCluster){
-        return jedisCluster.getClusterNodes().entrySet().stream().map(e -> e.getKey() + ":" + JedisPoolHelper.getPoolConfig(e.getValue())).collect(Collectors.joining(", "));
+        return jedisCluster.getClusterNodes().entrySet().stream().map(e -> e.getKey() + ":" + JedisHelper.getPoolConfig(e.getValue())).collect(Collectors.joining(", "));
     }
     
 }

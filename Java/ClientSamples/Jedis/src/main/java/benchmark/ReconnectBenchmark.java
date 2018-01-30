@@ -1,8 +1,8 @@
-package com.microsoft.azure.redis.jedis.benchmark;
+package benchmark;
 
 import com.beust.jcommander.JCommander;
-import com.microsoft.azure.redis.jedis.cluster.JedisClusterHelper;
-import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
+import cluster.JedisClusterHelper;
+import pool.JedisHelper;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
@@ -46,8 +46,8 @@ public class ReconnectBenchmark {
             logger.info(JedisClusterHelper.getClusterConfig(jedisCluster));
         } else {
             logger.info("Pool mode");
-            jedisPool = JedisPoolHelper.getPool(args.configFilePath);
-            logger.info(JedisPoolHelper.getPoolConfig(jedisPool));
+            jedisPool = JedisHelper.getPool(args.configFilePath);
+            logger.info(JedisHelper.getPoolConfig(jedisPool));
         }
         while(intervals.size() < args.numberOfTests){
             if(args.isCluster){
@@ -103,7 +103,7 @@ public class ReconnectBenchmark {
             sleepIfNecessary();
         } catch (JedisConnectionException e){
             checkConnected();
-            logger.info(JedisPoolHelper.getPoolUsage(jedisPool));
+            logger.info(JedisHelper.getPoolUsage(jedisPool));
         }
     }
 

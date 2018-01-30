@@ -1,6 +1,6 @@
-package com.microsoft.azure.redis.jedis.pool;
+package pool;
 
-import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
+import config.JedisConfiguration;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 

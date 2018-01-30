@@ -1,6 +1,6 @@
 package com.microsoft.azure.redis.jedis.test;
 
-import com.microsoft.azure.redis.jedis.pool.JedisPoolHelper;
+import pool.JedisHelper;
 import org.junit.Ignore;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
@@ -17,7 +17,7 @@ public class JedisPoolTest {
         IntStream.range(0, 10).parallel().forEach((i) ->
         {
             while(true) {
-                try (Jedis jedis = JedisPoolHelper.getPool().getResource()){
+                try (Jedis jedis = JedisHelper.getPool().getResource()){
                     simpleSetGet(jedis);
                     Thread.sleep(10 * 1000);
                 } catch (JedisConnectionException e) {

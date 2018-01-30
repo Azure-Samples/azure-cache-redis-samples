@@ -1,11 +1,9 @@
-package com.microsoft.azure.redis.jedis.pool;
+package pool;
 
-import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.apache.commons.pool2.impl.GenericObjectPoolMXBean;
+import config.JedisConfiguration;
 import redis.clients.jedis.JedisPool;
 
-public class JedisPoolHelper {
+public class JedisHelper {
 
     public static JedisPool getPool(){
         return getPool(null);

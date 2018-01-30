@@ -1,7 +1,7 @@
-package com.microsoft.azure.redis.jedis.config;
+package config;
 
 import com.beust.jcommander.Strings;
-import com.microsoft.azure.redis.jedis.pool.JedisPoolFactory;
+import pool.JedisPoolFactory;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.JedisPoolConfig;
 

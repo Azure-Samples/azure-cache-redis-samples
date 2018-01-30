@@ -1,4 +1,4 @@
-package com.microsoft.azure.redis.jedis.config;
+package config;
 
 public enum RedisConfigKey {
 

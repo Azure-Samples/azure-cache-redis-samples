@@ -1,6 +1,6 @@
-package com.microsoft.azure.redis.jedis.cluster;
+package cluster;
 
-import com.microsoft.azure.redis.jedis.config.JedisConfiguration;
+import config.JedisConfiguration;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 

@@ -1,4 +1,4 @@
-package com.microsoft.azure.redis.jedis.benchmark;
+package benchmark;
 
 import com.beust.jcommander.Parameter;
 
