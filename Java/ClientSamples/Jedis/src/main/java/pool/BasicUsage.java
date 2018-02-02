@@ -5,7 +5,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.stream.IntStream;
 
-public class JedisPoolSample {
+public class BasicUsage {
     public static void main(String args[]){
 
         // Each thread get its own Jedis instance from pool.
