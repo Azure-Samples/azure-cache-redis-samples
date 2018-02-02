@@ -24,3 +24,4 @@ hs_err_pid*
 # Intelli Idea files
 .idea/
 *.iml
+target/
