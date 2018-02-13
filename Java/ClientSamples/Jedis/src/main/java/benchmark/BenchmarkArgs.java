@@ -30,6 +30,9 @@ public class BenchmarkArgs
     @Parameter(names = "-file", description = "Config file path")
     public String configFilePath = "";
 
+    @Parameter(names = "-library", description = "Client library (default jedis)")
+    public String library = "jedis";
+
     /* Unsupported
     @Parameter(names = "-t", description = "Number of threads (default 1)")
     public Integer numberOfThreads = 1;

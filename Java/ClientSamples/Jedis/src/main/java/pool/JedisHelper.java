@@ -1,6 +1,6 @@
 package pool;
 
-import config.JedisConfiguration;
+import config.RedisClientConfiguration;
 import redis.clients.jedis.JedisPool;
 
 public class JedisHelper {
@@ -10,7 +10,7 @@ public class JedisHelper {
     }
 
     public static JedisPool getPool(String configFilePath){
-        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().propertyFile(configFilePath).build();
+        RedisClientConfiguration jedisClientConfiguration = RedisClientConfiguration.builder().propertyFile(configFilePath).build();
         JedisPoolFactory jedisPoolFactory = new JedisPoolFactory(jedisClientConfiguration);
         return jedisPoolFactory.createJedisPool();
     }

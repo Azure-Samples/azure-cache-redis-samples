@@ -1,13 +1,13 @@
 package pool;
 
-import config.JedisConfiguration;
+import config.RedisClientConfiguration;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 
 public class JedisPoolFactory {
-    private JedisConfiguration configuration;
+    private RedisClientConfiguration configuration;
 
-    public JedisPoolFactory(JedisConfiguration configuration) {
+    public JedisPoolFactory(RedisClientConfiguration configuration) {
         this.configuration = configuration;
     }
 

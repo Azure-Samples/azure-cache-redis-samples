@@ -18,7 +18,12 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>3.0.0-CLUSTER-SSL</version>
+        </dependency>
 
+        <dependency>
+            <groupId>biz.paluch.redis</groupId>
+            <artifactId>lettuce</artifactId>
+            <version>4.4.0.Final</version>
         </dependency>
 
         <dependency>
@@ -73,7 +78,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.microsoft.azure.redis.jedis.benchmark.ReconnectBenchmark
+                                    <mainClass>benchmark.ReconnectBenchmark
                                     </mainClass>
                                 </manifest>
                             </archive>

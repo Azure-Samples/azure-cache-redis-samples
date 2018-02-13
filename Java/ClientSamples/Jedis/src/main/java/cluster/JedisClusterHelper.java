@@ -1,6 +1,6 @@
 package cluster;
 
-import config.JedisConfiguration;
+import config.RedisClientConfiguration;
 import pool.JedisHelper;
 import redis.clients.jedis.JedisCluster;
 
@@ -8,15 +8,15 @@ import java.util.stream.Collectors;
 
 public class JedisClusterHelper {
     public static JedisCluster getCluster() {
-        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().build();
+        RedisClientConfiguration jedisClientConfiguration = RedisClientConfiguration.builder().build();
         JedisClusterFactory jedisClusterFactory = new JedisClusterFactory(jedisClientConfiguration);
-        return jedisClusterFactory.createJedisCluster();
+        return jedisClusterFactory.createInstance();
     }
 
     public static JedisCluster getCluster(String configFilePath){
-        JedisConfiguration jedisClientConfiguration = JedisConfiguration.builder().propertyFile(configFilePath).build();
+        RedisClientConfiguration jedisClientConfiguration = RedisClientConfiguration.builder().propertyFile(configFilePath).build();
         JedisClusterFactory jedisClusterFactory = new JedisClusterFactory(jedisClientConfiguration);
-        return jedisClusterFactory.createJedisCluster();
+        return jedisClusterFactory.createInstance();
     }
 
     public static String getClusterUsage(JedisCluster jedisCluster){

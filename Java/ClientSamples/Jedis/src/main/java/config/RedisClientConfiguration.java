@@ -20,8 +20,8 @@ import java.util.Properties;
  * to a single node <a href="http://redis.io/">Redis</a> installation.
  *
  */
-public class JedisConfiguration {
-	private static final Logger logger = Logger.getLogger(JedisConfiguration.class);
+public class RedisClientConfiguration {
+	private static final Logger logger = Logger.getLogger(RedisClientConfiguration.class);
 	private final Map<String, String> configs = new HashMap<>();
 	private static final int SSL_PORT = 6380;
 	private static final int NON_SSL_PORT = 6379;
@@ -32,8 +32,8 @@ public class JedisConfiguration {
 	private Optional<String> propertyFilePath;
 	private final JedisPoolConfig poolConfig;
 
-	public JedisConfiguration(Optional<String> propertyFilePath, SSLSocketFactory sslSocketFactory,
-					   SSLParameters sslParameters, HostnameVerifier hostnameVerifier) {
+	public RedisClientConfiguration(Optional<String> propertyFilePath, SSLSocketFactory sslSocketFactory,
+									SSLParameters sslParameters, HostnameVerifier hostnameVerifier) {
 		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
 		this.sslParameters = Optional.ofNullable(sslParameters);
 		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
@@ -179,9 +179,9 @@ public class JedisConfiguration {
 			return this;
 		}
 
-		public JedisConfiguration build() {
+		public RedisClientConfiguration build() {
 
-			return new JedisConfiguration(propertyFilePath, sslSocketFactory, sslParameters, hostnameVerifier);
+			return new RedisClientConfiguration(propertyFilePath, sslSocketFactory, sslParameters, hostnameVerifier);
 		}
 	}
 
