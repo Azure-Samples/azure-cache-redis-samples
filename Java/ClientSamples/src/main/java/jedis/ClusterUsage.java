@@ -29,7 +29,7 @@ public class ClusterUsage {
     }
 
     public static JedisCluster createCluster(RedisClientConfig clientConfig){
-        //TODO: JedisCluster doesn't support SSL. You can build this by this pull request https://github.com/xetorthio/jedis/pull/1550
+        //TODO: JedisCluster doesn't support SSL. You can build own version based on https://github.com/xetorthio/jedis/pull/1550
         HostAndPort hostAndPort = new HostAndPort(clientConfig.CLIENT_NAME, clientConfig.getPort());
         return new JedisCluster(hostAndPort, clientConfig.CONNECT_TIMEOUT_MILLS, clientConfig.OPERATION_TIMEOUT_MILLS, clientConfig.RECONNECT_MAX_ATTEMPTS, clientConfig. PASSWORD, clientConfig.POOL_CONFIG);
     }
