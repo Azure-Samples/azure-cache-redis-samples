@@ -1,3 +1,6 @@
+
+# pip install redis
+
 import redis
 
 # change {cacheName} into your own cache name
