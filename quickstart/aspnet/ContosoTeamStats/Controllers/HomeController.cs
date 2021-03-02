@@ -4,7 +4,7 @@ using System.Configuration;
 using System.Text;
 using System.Web.Mvc;
 
-namespace Redistest.Controllers
+namespace ContosoTeamStats.Controllers
 {
     public class HomeController : Controller
     {

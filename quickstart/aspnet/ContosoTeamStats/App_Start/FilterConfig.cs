@@ -1,7 +1,7 @@
 ﻿using System.Web;
 using System.Web.Mvc;
 
-namespace Redistest
+namespace ContosoTeamStats
 {
     public class FilterConfig
     {

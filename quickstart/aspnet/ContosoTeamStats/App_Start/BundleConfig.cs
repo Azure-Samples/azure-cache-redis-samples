@@ -1,7 +1,7 @@
 ﻿using System.Web;
 using System.Web.Optimization;
 
-namespace Redistest
+namespace ContosoTeamStats
 {
     public class BundleConfig
     {
