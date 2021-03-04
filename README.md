@@ -56,8 +56,8 @@ If you want to create one of the quickstart apps from scratch, please follow the
 
 | Sample | Platform | Description |
 | ------ | -------- | ----------- |
-| [Reconnection in C# .NET console app with StackExchange.Redis](/dotNet/ClientSamples/StackExchange.Redis) | Windows | Learn a technique of forcing client reconnections to resolve certain exceptions automatically. |
-| [Basic, cluster, and pool connections in Java console app with Jedis and Lettuce](/Java/ClientSamples/) | Windows, Linux, macOS | Learn the general approaches for using Jedis's `JedisCluster` and `JedisPool` and Lettuce's `RedisClient` and `ConnectionPoolSupport`. |
+| [Reconnection in C# .NET console app with StackExchange.Redis](/samples/dotnet/ClientSamples/StackExchange.Redis) | Windows | Learn a technique of forcing client reconnections to resolve certain exceptions automatically. |
+| [Basic, cluster, and pool connections in Java console app with Jedis and Lettuce](/samples/java/ClientSamples/) | Windows, Linux, macOS | Learn the general approaches for using Jedis's `JedisCluster` and `JedisPool` and Lettuce's `RedisClient` and `ConnectionPoolSupport`. |
 
 ## Resources
 
