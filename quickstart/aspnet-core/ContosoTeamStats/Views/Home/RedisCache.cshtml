@@ -1,0 +1,33 @@
+@{
+    ViewBag.Title = "Azure Cache for Redis Test";
+}
+
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+<br /><br />
+<table border="1" cellpadding="10" class="redis-results">
+    <tr>
+        <th>Command</th>
+        <th>Result</th>
+    </tr>
+    <tr>
+        <td>@ViewBag.command1</td>
+        <td><pre>@ViewBag.command1Result</pre></td>
+    </tr>
+    <tr>
+        <td>@ViewBag.command2</td>
+        <td><pre>@ViewBag.command2Result</pre></td>
+    </tr>
+    <tr>
+        <td>@ViewBag.command3</td>
+        <td><pre>@ViewBag.command3Result</pre></td>
+    </tr>
+    <tr>
+        <td>@ViewBag.command4</td>
+        <td><pre>@ViewBag.command4Result</pre></td>
+    </tr>
+    <tr>
+        <td>@ViewBag.command5</td>
+        <td><pre>@ViewBag.command5Result</pre></td>
+    </tr>
+</table>
