@@ -14,6 +14,7 @@ description: Learn how to use Azure Cache for Redis to have access to a secure, 
 products:
 - azure
 - aspnet
+- aspnet-core
 - dotnet
 - dotnet-core
 - azure-cache-redis
@@ -44,6 +45,7 @@ If you want to create one of the quickstart apps from scratch, please follow the
 | Quickstart | Platform | Description |
 | ---------- | -------- | ----------- |
 | [Quickstart ASP.NET for Windows](/quickstart/aspnet) | Windows | Learn how to use an ASP.NET web application to connect to Azure Cache for Redis to store and retrieve data from the cache. |
+| [Quickstart ASP.NET Core](/quickstart/aspnet-core) | Windows, Linux, macOS | Learn how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. |
 | [Quickstart C# .NET for Windows](/quickstart/dotnet) | Windows | Learn how to incorporate Azure Cache for Redis into a C# .NET Framework console app using the StackExchange.Redis Redis client. |
 | [Quickstart C# .NET Core](/quickstart/dotnet-core) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a C# .NET Core console app using the StackExchange.Redis Redis client. |
 | [Quickstart Java](/quickstart/java) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Jedis Redis client. |
