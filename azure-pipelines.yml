@@ -1,0 +1,50 @@
+trigger:
+- main
+
+pr:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Build ASP.NET Core quickstart'
+  continueOnError: true
+  inputs:
+    command: 'build'
+    workingDirectory: 'quickstart\aspnet-core\ContosoTeamStats'
+- task: NuGetCommand@2
+  continueOnError: true
+  displayName: 'NuGet restore ASP.NET quickstart'
+  inputs:
+    command: 'restore'
+    restoreSolution: 'quickstart\aspnet\*.sln' 
+- task: VSBuild@1
+  continueOnError: true
+  displayName: 'Build ASP.NET quickstart'
+  inputs:
+    solution: 'quickstart\aspnet\*.sln' 
+- task: DotNetCoreCLI@2
+  continueOnError: true
+  displayName: 'Build .NET Core quickstart'
+  inputs:
+    command: 'build'
+    workingDirectory: 'quickstart\dotnet-core'
+- task: NuGetCommand@2
+  continueOnError: true
+  displayName: 'NuGet restore .NET quickstart'
+  inputs:
+    command: 'restore'
+    restoreSolution: 'quickstart\dotnet\*.sln' 
+- task: VSBuild@1
+  continueOnError: true
+  displayName: 'Build .NET quickstart'
+  inputs:
+    solution: 'quickstart\dotnet\*.sln' 
+- task: Maven@3
+  continueOnError: true
+  displayName: 'Build Java quickstart'
+  inputs:
+    mavenPOMFile: 'quickstart\java\redistest\pom.xml'
+    goals: 'compile'
