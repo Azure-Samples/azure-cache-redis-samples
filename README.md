@@ -49,6 +49,7 @@ If you want to create one of the quickstart apps from scratch, please follow the
 | [Quickstart C# .NET for Windows](/quickstart/dotnet) | Windows | Learn how to incorporate Azure Cache for Redis into a C# .NET Framework console app using the StackExchange.Redis Redis client. |
 | [Quickstart C# .NET Core](/quickstart/dotnet-core) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a C# .NET Core console app using the StackExchange.Redis Redis client. |
 | [Quickstart Java](/quickstart/java) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Jedis Redis client. |
+| [Quickstart Java Redisson](/quickstart/java-redisson) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Redisson Redis client. |
 | [Quickstart Node.js](/quickstart/nodejs) | Node.js | Learn how to incorporate Azure Cache for Redis into a Node.js app. |
 | [Quickstart Python](/quickstart/python) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Python app. |
 | [Quickstart Rust](https://github.com/Azure-Samples/azure-redis-cache-rust-quickstart) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Rust app. |

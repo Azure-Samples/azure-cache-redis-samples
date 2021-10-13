@@ -48,3 +48,9 @@ steps:
   inputs:
     mavenPOMFile: 'quickstart\java\redistest\pom.xml'
     goals: 'compile'
+- task: Maven@3
+  continueOnError: true
+  displayName: 'Build Java Redisson quickstart'
+  inputs:
+    mavenPOMFile: 'quickstart\java-redisson\redis-redisson-test\pom.xml'
+    goals: 'compile'
