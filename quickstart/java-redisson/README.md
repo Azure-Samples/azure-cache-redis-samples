@@ -10,7 +10,7 @@ products:
 ---
 # Quickstart: Use Azure Cache for Redis in Java with Redisson Redis client
 
-This sample show you how to incorporate Azure Cache for Redis into a Java app using the [Redisson](https://redisson.org/) Redis client. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-java-redisson-get-started) on the documentation site for details, including best practices and how to create the sample code from scratch.
+This sample show you how to incorporate Azure Cache for Redis into a Java app using the [Redisson](https://redisson.org/) Redis client. See the [accompanying article](https://aka.ms/azure-cache-java-redisson-quickstart) on the documentation site for details, including best practices and how to create the sample code from scratch.
 
 ## Prerequisites
 
@@ -51,4 +51,4 @@ mvn compile exec:java -Dexec.mainClass=example.demo.App
 
 ## References
 
-* [Quickstart article on the documentation site](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-java-redisson-get-started)
+* [Quickstart article on the documentation site](https://aka.ms/azure-cache-java-redisson-quickstart)
