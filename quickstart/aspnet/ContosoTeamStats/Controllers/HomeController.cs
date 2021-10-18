@@ -34,6 +34,11 @@ namespace ContosoTeamStats.Controllers
         {
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET.";
 
+            if (Connection == null)
+            {
+                await InitializeAsync();
+            }
+
             IDatabase cache = await GetDatabaseAsync();
 
             // Perform cache operations using the cache object...
@@ -276,31 +281,19 @@ namespace ContosoTeamStats.Controllers
             }
         }
 
-        public static async Task<IDatabase> GetDatabaseAsync()
+        public static Task<IDatabase> GetDatabaseAsync()
         {
-            if (Connection == null)
-            {
-                await InitializeAsync();
-            }
-            return await BasicRetryAsync(() => Connection.GetDatabase());
+            return BasicRetryAsync(() => Connection.GetDatabase());
         }
 
-        public static async Task<System.Net.EndPoint[]> GetEndPointsAsync()
+        public static Task<System.Net.EndPoint[]> GetEndPointsAsync()
         {
-            if (Connection == null)
-            {
-                await InitializeAsync();
-            }
-            return await BasicRetryAsync(() => Connection.GetEndPoints());
+            return BasicRetryAsync(() => Connection.GetEndPoints());
         }
 
-        public static async Task<IServer> GetServerAsync(string host, int port)
+        public static Task<IServer> GetServerAsync(string host, int port)
         {
-            if (Connection == null)
-            {
-                await InitializeAsync();
-            }
-            return await BasicRetryAsync(() => Connection.GetServer(host, port));
+            return BasicRetryAsync(() => Connection.GetServer(host, port));
         }
     }
 }
