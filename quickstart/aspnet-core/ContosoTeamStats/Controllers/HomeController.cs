@@ -76,7 +76,7 @@ namespace ContosoTeamStats.Controllers
             StringBuilder sb = new StringBuilder();
             var endpoint = (System.Net.DnsEndPoint)(await GetEndPointsAsync())[0];
             IServer server = await GetServerAsync(endpoint.Host, endpoint.Port);
-            ClientInfo[] clients = server.ClientList();
+            ClientInfo[] clients = await server.ClientListAsync();
 
             sb.AppendLine("Cache response :");
             foreach (ClientInfo client in clients)
