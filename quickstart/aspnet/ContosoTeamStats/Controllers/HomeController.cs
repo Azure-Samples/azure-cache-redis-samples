@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace ContosoTeamStats.Controllers
@@ -29,11 +30,11 @@ namespace ContosoTeamStats.Controllers
             return View();
         }
 
-        public ActionResult RedisCache()
+        public async Task<ActionResult> RedisCache()
         {
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET.";
 
-            IDatabase cache = GetDatabase();
+            IDatabase cache = await GetDatabaseAsync();
 
             // Perform cache operations using the cache object...
 
@@ -56,9 +57,9 @@ namespace ContosoTeamStats.Controllers
             // Note that this requires allowAdmin=true in the connection string
             ViewBag.command5 = "CLIENT LIST";
             StringBuilder sb = new StringBuilder();
-            var endpoint = (System.Net.DnsEndPoint)GetEndPoints()[0];
-            IServer server = GetServer(endpoint.Host, endpoint.Port);
-            ClientInfo[] clients = server.ClientList();
+            var endpoint = (System.Net.DnsEndPoint)(await GetEndPointsAsync())[0];
+            IServer server = await GetServerAsync(endpoint.Host, endpoint.Port);
+            ClientInfo[] clients = await server.ClientListAsync();
 
             sb.AppendLine("Cache response :");
             foreach (ClientInfo client in clients)
@@ -94,33 +95,23 @@ namespace ContosoTeamStats.Controllers
         public static TimeSpan RestartConnectionTimeout => TimeSpan.FromSeconds(15);
 
         public static int RetryMaxAttempts => 5;
-        
-        public static ConnectionMultiplexer Connection
-        {
-            get
-            {
-                if (_connection == null)
-                {
-                    Initialize();
-                }
-                return _connection;
-            }
-        }
 
-        public static void Initialize()
+        public static ConnectionMultiplexer Connection { get { return _connection; } }
+
+        public static async Task InitializeAsync()
         {
             if (_didInitialize)
             {
                 throw new InvalidOperationException("Cannot initialize more than once.");
             }
 
-            _connection = CreateConnection();
+            _connection = await CreateConnectionAsync();
             _didInitialize = true;
         }
 
         // This method may return null if it fails to acquire the semaphore in time.
         // Use the return value to update the "connection" field
-        private static ConnectionMultiplexer CreateConnection()
+        private static async Task<ConnectionMultiplexer> CreateConnectionAsync()
         {
             if (_connection != null)
             {
@@ -130,7 +121,7 @@ namespace ContosoTeamStats.Controllers
 
             try
             {
-                _initSemaphore.Wait(RestartConnectionTimeout);
+                await _initSemaphore.WaitAsync(RestartConnectionTimeout);
             }
             catch
             {
@@ -149,7 +140,7 @@ namespace ContosoTeamStats.Controllers
 
                 // Otherwise, we really need to create a new connection.
                 string cacheConnection = ConfigurationManager.AppSettings["CacheConnection"].ToString();
-                return ConnectionMultiplexer.Connect(cacheConnection);
+                return await ConnectionMultiplexer.ConnectAsync(cacheConnection);
             }
             finally
             {
@@ -157,7 +148,7 @@ namespace ContosoTeamStats.Controllers
             }
         }
 
-        private static void CloseConnection(ConnectionMultiplexer oldConnection)
+        private static async Task CloseConnectionAsync(ConnectionMultiplexer oldConnection)
         {
             if (oldConnection == null)
             {
@@ -165,7 +156,7 @@ namespace ContosoTeamStats.Controllers
             }
             try
             {
-                oldConnection.Close();
+                await oldConnection.CloseAsync();
             }
             catch (Exception)
             {
@@ -173,26 +164,25 @@ namespace ContosoTeamStats.Controllers
             }
         }
 
-
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.
         /// NOTES:
-        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnect().
-        ///     2. Call ForceReconnect() for RedisConnectionExceptions and RedisSocketExceptions. You can also call it for RedisTimeoutExceptions,
+        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnectAsync().
+        ///     2. Call ForceReconnectAsync() for RedisConnectionExceptions and RedisSocketExceptions. You can also call it for RedisTimeoutExceptions,
         ///         but only if you're using generous ReconnectMinInterval and ReconnectErrorThreshold. Otherwise, establishing new connections can cause
         ///         a cascade failure on a server that's timing out because it's already overloaded.
         ///     3. The code will:
         ///         a. wait to reconnect for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinInterval"
         /// </summary>
-        public static void ForceReconnect()
+        public static async Task ForceReconnectAsync()
         {
             var utcNow = DateTimeOffset.UtcNow;
             long previousTicks = Interlocked.Read(ref _lastReconnectTicks);
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
             TimeSpan elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
-            // If multiple threads call ForceReconnect at the same time, we only want to honor one of them.
+            // If multiple threads call ForceReconnectAsync at the same time, we only want to honor one of them.
             if (elapsedSinceLastReconnect < ReconnectMinInterval)
             {
                 return;
@@ -200,12 +190,12 @@ namespace ContosoTeamStats.Controllers
 
             try
             {
-                _reconnectSemaphore.Wait(RestartConnectionTimeout);
+                await _reconnectSemaphore.WaitAsync(RestartConnectionTimeout);
             }
             catch
             {
                 // If we fail to enter the semaphore, then it is possible that another thread has already done so.
-                // ForceReconnect() can be retried while connectivity problems persist.
+                // ForceReconnectAsync() can be retried while connectivity problems persist.
                 return;
             }
 
@@ -246,9 +236,9 @@ namespace ContosoTeamStats.Controllers
                 _previousErrorTime = DateTimeOffset.MinValue;
 
                 ConnectionMultiplexer oldConnection = _connection;
-                CloseConnection(oldConnection);
+                await CloseConnectionAsync(oldConnection);
                 _connection = null;
-                _connection = CreateConnection();
+                _connection = await CreateConnectionAsync();
                 Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
             }
             finally
@@ -259,7 +249,7 @@ namespace ContosoTeamStats.Controllers
 
         // In real applications, consider using a framework such as
         // Polly to make it easier to customize the retry approach.
-        private static T BasicRetry<T>(Func<T> func)
+        private static async Task<T> BasicRetryAsync<T>(Func<T> func)
         {
             int reconnectRetry = 0;
             int disposedRetry = 0;
@@ -275,7 +265,7 @@ namespace ContosoTeamStats.Controllers
                     reconnectRetry++;
                     if (reconnectRetry > RetryMaxAttempts)
                         throw;
-                    ForceReconnect();
+                    await ForceReconnectAsync();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -286,19 +276,31 @@ namespace ContosoTeamStats.Controllers
             }
         }
 
-        public static IDatabase GetDatabase()
+        public static async Task<IDatabase> GetDatabaseAsync()
         {
-            return BasicRetry(() => Connection.GetDatabase());
+            if (Connection == null)
+            {
+                await InitializeAsync();
+            }
+            return await BasicRetryAsync(() => Connection.GetDatabase());
         }
 
-        public static System.Net.EndPoint[] GetEndPoints()
+        public static async Task<System.Net.EndPoint[]> GetEndPointsAsync()
         {
-            return BasicRetry(() => Connection.GetEndPoints());
+            if (Connection == null)
+            {
+                await InitializeAsync();
+            }
+            return await BasicRetryAsync(() => Connection.GetEndPoints());
         }
 
-        public static IServer GetServer(string host, int port)
+        public static async Task<IServer> GetServerAsync(string host, int port)
         {
-            return BasicRetry(() => Connection.GetServer(host, port));
+            if (Connection == null)
+            {
+                await InitializeAsync();
+            }
+            return await BasicRetryAsync(() => Connection.GetServer(host, port));
         }
     }
 }
