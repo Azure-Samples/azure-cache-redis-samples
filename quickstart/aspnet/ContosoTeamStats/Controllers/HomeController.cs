@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace ContosoTeamStats.Controllers
@@ -29,11 +30,16 @@ namespace ContosoTeamStats.Controllers
             return View();
         }
 
-        public ActionResult RedisCache()
+        public async Task<ActionResult> RedisCache()
         {
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET.";
 
-            IDatabase cache = GetDatabase();
+            if (Connection == null)
+            {
+                await InitializeAsync();
+            }
+
+            IDatabase cache = await GetDatabaseAsync();
 
             // Perform cache operations using the cache object...
 
@@ -56,9 +62,9 @@ namespace ContosoTeamStats.Controllers
             // Note that this requires allowAdmin=true in the connection string
             ViewBag.command5 = "CLIENT LIST";
             StringBuilder sb = new StringBuilder();
-            var endpoint = (System.Net.DnsEndPoint)GetEndPoints()[0];
-            IServer server = GetServer(endpoint.Host, endpoint.Port);
-            ClientInfo[] clients = server.ClientList();
+            var endpoint = (System.Net.DnsEndPoint)(await GetEndPointsAsync())[0];
+            IServer server = await GetServerAsync(endpoint.Host, endpoint.Port);
+            ClientInfo[] clients = await server.ClientListAsync();
 
             sb.AppendLine("Cache response :");
             foreach (ClientInfo client in clients)
@@ -71,120 +77,184 @@ namespace ContosoTeamStats.Controllers
             return View();
         }
 
-        private static long lastReconnectTicks = DateTimeOffset.MinValue.UtcTicks;
-        private static DateTimeOffset firstErrorTime = DateTimeOffset.MinValue;
-        private static DateTimeOffset previousErrorTime = DateTimeOffset.MinValue;
+        private static long _lastReconnectTicks = DateTimeOffset.MinValue.UtcTicks;
+        private static DateTimeOffset _firstErrorTime = DateTimeOffset.MinValue;
+        private static DateTimeOffset _previousErrorTime = DateTimeOffset.MinValue;
 
-        private static readonly object reconnectLock = new object();
+        private static SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+        private static SemaphoreSlim _initSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+
+        private static ConnectionMultiplexer _connection;
+        private static bool _didInitialize = false;
 
         // In general, let StackExchange.Redis handle most reconnects,
         // so limit the frequency of how often ForceReconnect() will
         // actually reconnect.
-        public static TimeSpan ReconnectMinFrequency => TimeSpan.FromSeconds(60);
+        public static TimeSpan ReconnectMinInterval => TimeSpan.FromSeconds(60);
 
         // If errors continue for longer than the below threshold, then the
         // multiplexer seems to not be reconnecting, so ForceReconnect() will
         // re-create the multiplexer.
         public static TimeSpan ReconnectErrorThreshold => TimeSpan.FromSeconds(30);
 
+        public static TimeSpan RestartConnectionTimeout => TimeSpan.FromSeconds(15);
+
         public static int RetryMaxAttempts => 5;
 
-        private static Lazy<ConnectionMultiplexer> lazyConnection = CreateConnection();
+        public static ConnectionMultiplexer Connection { get { return _connection; } }
 
-        public static ConnectionMultiplexer Connection
+        public static async Task InitializeAsync()
         {
-            get
+            if (_didInitialize)
             {
-                return lazyConnection.Value;
+                throw new InvalidOperationException("Cannot initialize more than once.");
             }
+
+            _connection = await CreateConnectionAsync();
+            _didInitialize = true;
         }
 
-        private static Lazy<ConnectionMultiplexer> CreateConnection()
+        // This method may return null if it fails to acquire the semaphore in time.
+        // Use the return value to update the "connection" field
+        private static async Task<ConnectionMultiplexer> CreateConnectionAsync()
         {
-            return new Lazy<ConnectionMultiplexer>(() =>
+            if (_connection != null)
             {
-                string cacheConnection = ConfigurationManager.AppSettings["CacheConnection"].ToString();
-                return ConnectionMultiplexer.Connect(cacheConnection);
-            });
-        }
-
-        private static void CloseConnection(Lazy<ConnectionMultiplexer> oldConnection)
-        {
-            if (oldConnection == null)
-                return;
+                // If we already have a good connection, let's re-use it
+                return _connection;
+            }
 
             try
             {
-                oldConnection.Value.Close();
+                await _initSemaphore.WaitAsync(RestartConnectionTimeout);
+            }
+            catch
+            {
+                // We failed to enter the semaphore in the given amount of time. Connection will either be null, or have a value that was created by another thread.
+                return _connection;
+            }
+
+            // We entered the semaphore successfully.
+            try
+            {
+                if (_connection != null)
+                {
+                    // Another thread must have finished creating a new connection while we were waiting to enter the semaphore. Let's use it
+                    return _connection;
+                }
+
+                // Otherwise, we really need to create a new connection.
+                string cacheConnection = ConfigurationManager.AppSettings["CacheConnection"].ToString();
+                return await ConnectionMultiplexer.ConnectAsync(cacheConnection);
+            }
+            finally
+            {
+                _initSemaphore.Release();
+            }
+        }
+
+        private static async Task CloseConnectionAsync(ConnectionMultiplexer oldConnection)
+        {
+            if (oldConnection == null)
+            {
+                return;
+            }
+            try
+            {
+                await oldConnection.CloseAsync();
             }
             catch (Exception)
             {
-                // Example error condition: if accessing oldConnection.Value causes a connection attempt and that fails.
+                // Ignore any errors from the oldConnection
             }
         }
 
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.
         /// NOTES:
-        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnect().
-        ///     2. Don't call ForceReconnect for Timeouts, just for RedisConnectionExceptions or SocketExceptions.
-        ///     3. Call this method every time you see a connection exception. The code will:
+        ///     1. Users of the ConnectionMultiplexer MUST handle ObjectDisposedExceptions, which can now happen as a result of calling ForceReconnectAsync().
+        ///     2. Call ForceReconnectAsync() for RedisConnectionExceptions and RedisSocketExceptions. You can also call it for RedisTimeoutExceptions,
+        ///         but only if you're using generous ReconnectMinInterval and ReconnectErrorThreshold. Otherwise, establishing new connections can cause
+        ///         a cascade failure on a server that's timing out because it's already overloaded.
+        ///     3. The code will:
         ///         a. wait to reconnect for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
-        ///         b. not reconnect more frequently than configured in "ReconnectMinFrequency"
+        ///         b. not reconnect more frequently than configured in "ReconnectMinInterval"
         /// </summary>
-        public static void ForceReconnect()
+        public static async Task ForceReconnectAsync()
         {
             var utcNow = DateTimeOffset.UtcNow;
-            long previousTicks = Interlocked.Read(ref lastReconnectTicks);
+            long previousTicks = Interlocked.Read(ref _lastReconnectTicks);
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
             TimeSpan elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
-            // If multiple threads call ForceReconnect at the same time, we only want to honor one of them.
-            if (elapsedSinceLastReconnect < ReconnectMinFrequency)
+            // If multiple threads call ForceReconnectAsync at the same time, we only want to honor one of them.
+            if (elapsedSinceLastReconnect < ReconnectMinInterval)
+            {
                 return;
+            }
 
-            lock (reconnectLock)
+            try
+            {
+                await _reconnectSemaphore.WaitAsync(RestartConnectionTimeout);
+            }
+            catch
+            {
+                // If we fail to enter the semaphore, then it is possible that another thread has already done so.
+                // ForceReconnectAsync() can be retried while connectivity problems persist.
+                return;
+            }
+
+            try
             {
                 utcNow = DateTimeOffset.UtcNow;
                 elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
-                if (firstErrorTime == DateTimeOffset.MinValue)
+                if (_firstErrorTime == DateTimeOffset.MinValue)
                 {
                     // We haven't seen an error since last reconnect, so set initial values.
-                    firstErrorTime = utcNow;
-                    previousErrorTime = utcNow;
+                    _firstErrorTime = utcNow;
+                    _previousErrorTime = utcNow;
                     return;
                 }
 
-                if (elapsedSinceLastReconnect < ReconnectMinFrequency)
+                if (elapsedSinceLastReconnect < ReconnectMinInterval)
+                {
                     return; // Some other thread made it through the check and the lock, so nothing to do.
+                }
 
-                TimeSpan elapsedSinceFirstError = utcNow - firstErrorTime;
-                TimeSpan elapsedSinceMostRecentError = utcNow - previousErrorTime;
+                TimeSpan elapsedSinceFirstError = utcNow - _firstErrorTime;
+                TimeSpan elapsedSinceMostRecentError = utcNow - _previousErrorTime;
 
                 bool shouldReconnect =
                     elapsedSinceFirstError >= ReconnectErrorThreshold // Make sure we gave the multiplexer enough time to reconnect on its own if it could.
                     && elapsedSinceMostRecentError <= ReconnectErrorThreshold; // Make sure we aren't working on stale data (e.g. if there was a gap in errors, don't reconnect yet).
 
                 // Update the previousErrorTime timestamp to be now (e.g. this reconnect request).
-                previousErrorTime = utcNow;
+                _previousErrorTime = utcNow;
 
                 if (!shouldReconnect)
+                {
                     return;
+                }
 
-                firstErrorTime = DateTimeOffset.MinValue;
-                previousErrorTime = DateTimeOffset.MinValue;
+                _firstErrorTime = DateTimeOffset.MinValue;
+                _previousErrorTime = DateTimeOffset.MinValue;
 
-                Lazy<ConnectionMultiplexer> oldConnection = lazyConnection;
-                CloseConnection(oldConnection);
-                lazyConnection = CreateConnection();
-                Interlocked.Exchange(ref lastReconnectTicks, utcNow.UtcTicks);
+                ConnectionMultiplexer oldConnection = _connection;
+                await CloseConnectionAsync(oldConnection);
+                _connection = null;
+                _connection = await CreateConnectionAsync();
+                Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
+            }
+            finally
+            {
+                _reconnectSemaphore.Release();
             }
         }
 
         // In real applications, consider using a framework such as
         // Polly to make it easier to customize the retry approach.
-        private static T BasicRetry<T>(Func<T> func)
+        private static async Task<T> BasicRetryAsync<T>(Func<T> func)
         {
             int reconnectRetry = 0;
             int disposedRetry = 0;
@@ -200,7 +270,7 @@ namespace ContosoTeamStats.Controllers
                     reconnectRetry++;
                     if (reconnectRetry > RetryMaxAttempts)
                         throw;
-                    ForceReconnect();
+                    await ForceReconnectAsync();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -211,19 +281,19 @@ namespace ContosoTeamStats.Controllers
             }
         }
 
-        public static IDatabase GetDatabase()
+        public static Task<IDatabase> GetDatabaseAsync()
         {
-            return BasicRetry(() => Connection.GetDatabase());
+            return BasicRetryAsync(() => Connection.GetDatabase());
         }
 
-        public static System.Net.EndPoint[] GetEndPoints()
+        public static Task<System.Net.EndPoint[]> GetEndPointsAsync()
         {
-            return BasicRetry(() => Connection.GetEndPoints());
+            return BasicRetryAsync(() => Connection.GetEndPoints());
         }
 
-        public static IServer GetServer(string host, int port)
+        public static Task<IServer> GetServerAsync(string host, int port)
         {
-            return BasicRetry(() => Connection.GetServer(host, port));
+            return BasicRetryAsync(() => Connection.GetServer(host, port));
         }
     }
 }
