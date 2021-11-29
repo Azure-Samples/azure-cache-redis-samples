@@ -46,7 +46,7 @@ Change directories to the folder containing this sample.
 Execute the following Maven command to build and run the app:
 
 ```CMD
-mvn compile exec:java -Dexec.mainClass=example.demo.App
+mvn compile exec:java -D exec.mainClass=example.demo.App
 ```
 
 ## References
