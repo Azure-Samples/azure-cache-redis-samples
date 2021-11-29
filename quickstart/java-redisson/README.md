@@ -48,7 +48,3 @@ Execute the following Maven command to build and run the app:
 ```CMD
 mvn compile exec:java -D exec.mainClass=example.demo.App
 ```
-
-## References
-
-* [Quickstart article on the documentation site](https://aka.ms/azure-cache-java-redisson-quickstart)
