@@ -35,6 +35,5 @@ public class App {
         System.out.println("Cache Response : " + map.get("Message"));
 
         client.shutdown();
-        System.exit(0);
     }
 }
