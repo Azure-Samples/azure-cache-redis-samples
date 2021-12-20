@@ -11,12 +11,14 @@ import java.time.LocalDateTime;
  * Redis test
  *
  */
-public class App {
-    public static void main(String[] args) {
+public class App
+{
+    public static void main(String[] args)
+    {
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
         Config config = new Config();
         config.useSingleServer().setPassword(System.getenv("REDISCACHEKEY"))
-                .setAddress(String.format("rediss://%s:6380", System.getenv("REDISCACHEHOSTNAME")));
+            .setAddress(String.format("rediss://%s:6380", System.getenv("REDISCACHEHOSTNAME")));
         RedissonClient client = Redisson.create(config);
 
         // Perform cache operations using the cache client
@@ -28,7 +30,7 @@ public class App {
 
         System.out.println("\nCache Command  : SET Message");
         System.out.println("Cache Response : " + map.put("Message",
-                String.format("Hello! The cache is working from Java! %s", LocalDateTime.now())));
+            String.format("Hello! The cache is working from Java! %s", LocalDateTime.now())));
 
         // Demonstrate "SET Message" executed as expected
         System.out.println("\nCache Command  : GET Message");
