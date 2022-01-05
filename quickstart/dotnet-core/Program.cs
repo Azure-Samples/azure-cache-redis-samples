@@ -260,21 +260,21 @@ namespace Redistest
             // Simple PING command
             string cacheCommand = "PING";
             Console.WriteLine("\nCache command  : " + cacheCommand);
-            Console.WriteLine("Cache response : " + cache.Execute(cacheCommand).ToString());
+            Console.WriteLine("Cache response : " + (await cache.ExecuteAsync(cacheCommand)).ToString());
 
             // Simple get and put of integral data types into the cache
             cacheCommand = "GET Message";
             Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
-            Console.WriteLine("Cache response : " + cache.StringGet("Message").ToString());
+            Console.WriteLine("Cache response : " + (await cache.StringGetAsync("Message")).ToString());
 
             cacheCommand = "SET Message \"Hello! The cache is working from a .NET Core console app!\"";
             Console.WriteLine("\nCache command  : " + cacheCommand + " or StringSet()");
-            Console.WriteLine("Cache response : " + cache.StringSet("Message", "Hello! The cache is working from a .NET Core console app!").ToString());
+            Console.WriteLine("Cache response : " + (await cache.StringSetAsync("Message", "Hello! The cache is working from a .NET Core console app!")).ToString());
 
             // Demonstrate "SET Message" executed as expected...
             cacheCommand = "GET Message";
             Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
-            Console.WriteLine("Cache response : " + cache.StringGet("Message").ToString());
+            Console.WriteLine("Cache response : " + (await cache.StringGetAsync("Message")).ToString());
 
             // Get the client list, useful to see if connection list is growing...
             // Note that this requires allowAdmin=true in the connection string
@@ -293,10 +293,10 @@ namespace Redistest
             // Store .NET object to cache
             Employee e007 = new Employee("007", "Davide Columbo", 100);
             Console.WriteLine("Cache response from storing Employee .NET object : " +
-            cache.StringSet("e007", JsonConvert.SerializeObject(e007)));
+            await cache.StringSetAsync("e007", JsonConvert.SerializeObject(e007)));
 
             // Retrieve .NET object from cache
-            Employee e007FromCache = JsonConvert.DeserializeObject<Employee>(cache.StringGet("e007"));
+            Employee e007FromCache = JsonConvert.DeserializeObject<Employee>(await cache.StringGetAsync("e007"));
             Console.WriteLine("Deserialized Employee .NET object :\n");
             Console.WriteLine("\tEmployee.Name : " + e007FromCache.Name);
             Console.WriteLine("\tEmployee.Id   : " + e007FromCache.Id);

@@ -57,18 +57,18 @@ namespace ContosoTeamStats.Controllers
 
             // Simple PING command
             ViewBag.command1 = "PING";
-            ViewBag.command1Result = cache.Execute(ViewBag.command1).ToString();
+            ViewBag.command1Result = (await cache.ExecuteAsync(ViewBag.command1)).ToString();
 
             // Simple get and put of integral data types into the cache
             ViewBag.command2 = "GET Message";
-            ViewBag.command2Result = cache.StringGet("Message").ToString();
+            ViewBag.command2Result = (await cache.StringGetAsync("Message")).ToString();
 
             ViewBag.command3 = "SET Message \"Hello! The cache is working from ASP.NET Core!\"";
-            ViewBag.command3Result = cache.StringSet("Message", "Hello! The cache is working from ASP.NET Core!").ToString();
+            ViewBag.command3Result = (await cache.StringSetAsync("Message", "Hello! The cache is working from ASP.NET Core!")).ToString();
 
             // Demonstrate "SET Message" executed as expected...
             ViewBag.command4 = "GET Message";
-            ViewBag.command4Result = cache.StringGet("Message").ToString();
+            ViewBag.command4Result = (await cache.StringGetAsync("Message")).ToString();
 
             // Get the client list, useful to see if connection list is growing...
             // Note that this requires allowAdmin=true in the connection string
