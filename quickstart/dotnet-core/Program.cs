@@ -284,7 +284,7 @@ namespace Redistest
             cacheCommand = "GET Message";
             Console.WriteLine($"\nCache command: {cacheCommand} or StringGet()");
             getMessageResult = await BasicRetryAsync(async (db) => await db.StringGetAsync("Message"));
-            Console.WriteLine($"Cache response : {getMessageResult}");
+            Console.WriteLine($"Cache response: {getMessageResult}");
 
             // Store .NET object to cache
             Employee e007 = new Employee("007", "Davide Columbo", 100);
