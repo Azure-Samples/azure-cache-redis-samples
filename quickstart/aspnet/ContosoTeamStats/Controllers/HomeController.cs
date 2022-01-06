@@ -39,40 +39,21 @@ namespace ContosoTeamStats.Controllers
                 await InitializeAsync();
             }
 
-            IDatabase cache = await GetDatabaseAsync();
-
             // Perform cache operations using the cache object...
 
             // Simple PING command
             ViewBag.command1 = "PING";
-            ViewBag.command1Result = (await cache.ExecuteAsync((string)ViewBag.command1)).ToString();
+            ViewBag.command1Result = (await BasicRetryAsync(async (db) => await db.ExecuteAsync((string)ViewBag.command1))).ToString();
 
             // Simple get and put of integral data types into the cache
             ViewBag.command2 = "GET Message";
-            ViewBag.command2Result = (await cache.StringGetAsync("Message")).ToString();
+            ViewBag.command2Result = (await BasicRetryAsync(async (db) => await db.StringGetAsync("Message"))).ToString();
 
             ViewBag.command3 = "SET Message \"Hello! The cache is working from ASP.NET!\"";
-            ViewBag.command3Result = (await cache.StringSetAsync("Message", "Hello! The cache is working from ASP.NET!")).ToString();
+            ViewBag.command3Result = (await BasicRetryAsync(async (db) => await db.StringSetAsync("Message", "Hello! The cache is working from ASP.NET!"))).ToString();
 
-            // Demonstrate "SET Message" executed as expected...
             ViewBag.command4 = "GET Message";
-            ViewBag.command4Result = (await cache.StringGetAsync("Message")).ToString();
-
-            // Get the client list, useful to see if connection list is growing...
-            // Note that this requires allowAdmin=true in the connection string
-            ViewBag.command5 = "CLIENT LIST";
-            StringBuilder sb = new StringBuilder();
-            var endpoint = (System.Net.DnsEndPoint)(await GetEndPointsAsync())[0];
-            IServer server = await GetServerAsync(endpoint.Host, endpoint.Port);
-            ClientInfo[] clients = await server.ClientListAsync();
-
-            sb.AppendLine("Cache response :");
-            foreach (ClientInfo client in clients)
-            {
-                sb.AppendLine(client.Raw);
-            }
-
-            ViewBag.command5Result = sb.ToString();
+            ViewBag.command4Result = (await BasicRetryAsync(async (db) => await db.StringGetAsync("Message"))).ToString();
 
             return View();
         }
@@ -101,7 +82,7 @@ namespace ContosoTeamStats.Controllers
 
         public static int RetryMaxAttempts => 5;
 
-        public static ConnectionMultiplexer Connection { get { return _connection; } }
+        public static ConnectionMultiplexer Connection { get { return _connection ?? CreateConnectionAsync().GetAwaiter().GetResult(); } }
 
         public static async Task InitializeAsync()
         {
@@ -242,8 +223,9 @@ namespace ContosoTeamStats.Controllers
 
                 ConnectionMultiplexer oldConnection = _connection;
                 await CloseConnectionAsync(oldConnection);
-                _connection = null;
-                _connection = await CreateConnectionAsync();
+                Interlocked.Exchange(ref _connection, null);
+                ConnectionMultiplexer newConnection = await CreateConnectionAsync();
+                Interlocked.Exchange(ref _connection, newConnection);
                 Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
             }
             finally
@@ -254,46 +236,30 @@ namespace ContosoTeamStats.Controllers
 
         // In real applications, consider using a framework such as
         // Polly to make it easier to customize the retry approach.
-        private static async Task<T> BasicRetryAsync<T>(Func<T> func)
+        private static async Task<T> BasicRetryAsync<T>(Func<IDatabase, Task<T>> func)
         {
             int reconnectRetry = 0;
-            int disposedRetry = 0;
 
+            IDatabase cache = Connection.GetDatabase();
             while (true)
             {
                 try
                 {
-                    return func();
+                    return await func(cache);
                 }
                 catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
                 {
                     reconnectRetry++;
                     if (reconnectRetry > RetryMaxAttempts)
                         throw;
-                    await ForceReconnectAsync();
-                }
-                catch (ObjectDisposedException)
-                {
-                    disposedRetry++;
-                    if (disposedRetry > RetryMaxAttempts)
-                        throw;
+                    try
+                    {
+                        await ForceReconnectAsync();
+                        cache = Connection.GetDatabase();
+                    }
+                    catch (ObjectDisposedException) { }
                 }
             }
-        }
-
-        public static Task<IDatabase> GetDatabaseAsync()
-        {
-            return BasicRetryAsync(() => Connection.GetDatabase());
-        }
-
-        public static Task<System.Net.EndPoint[]> GetEndPointsAsync()
-        {
-            return BasicRetryAsync(() => Connection.GetEndPoints());
-        }
-
-        public static Task<IServer> GetServerAsync(string host, int port)
-        {
-            return BasicRetryAsync(() => Connection.GetServer(host, port));
         }
     }
 }
