@@ -239,9 +239,10 @@ namespace Redistest
 
             while (inputKey != ConsoleKey.Q)
             {
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < 2; i++)
                 {
                     Task.Run(() => RunRedisCommands());
+                    Thread.Sleep(500);
                 }
 
                 Thread.Sleep(5000);
@@ -274,7 +275,6 @@ namespace Redistest
             bool stringSetResult = await BasicRetryAsync(async (db) => await db.StringSetAsync("Message", "Hello! The cache is working from a .NET console app!"));
             Console.WriteLine($"Cache response: {stringSetResult}");
 
-            // Demonstrate "SET Message" executed as expected...
             cacheCommand = "GET Message";
             Console.WriteLine($"\nCache command: {cacheCommand} or StringGet()");
             getMessageResult = await BasicRetryAsync(async (db) => await db.StringGetAsync("Message"));
