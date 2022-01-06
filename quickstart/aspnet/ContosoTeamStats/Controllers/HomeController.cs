@@ -45,7 +45,7 @@ namespace ContosoTeamStats.Controllers
 
             // Simple PING command
             ViewBag.command1 = "PING";
-            ViewBag.command1Result = cache.Execute(ViewBag.command1).ToString();
+            ViewBag.command1Result = (await cache.ExecuteAsync((string)ViewBag.command1)).ToString();
 
             // Simple get and put of integral data types into the cache
             ViewBag.command2 = "GET Message";

@@ -49,7 +49,7 @@ namespace Redistest
 
         public static int RetryMaxAttempts => 5;
         
-        public static ConnectionMultiplexer Connection { get { return _connection; } }
+        public static ConnectionMultiplexer Connection { get { return _connection ?? CreateConnectionAsync().GetAwaiter().GetResult(); } }
 
         private static async Task InitializeAsync()
         {
@@ -195,8 +195,9 @@ namespace Redistest
 
                 ConnectionMultiplexer oldConnection = _connection;
                 await CloseConnectionAsync(oldConnection);
-                _connection = null;
-                _connection = await CreateConnectionAsync();
+                Interlocked.Exchange(ref _connection, null);
+                ConnectionMultiplexer newConnection = await CreateConnectionAsync();
+                Interlocked.Exchange(ref _connection, newConnection);
                 Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
             }
             finally
@@ -207,7 +208,7 @@ namespace Redistest
 
         // In real applications, consider using a framework such as
         // Polly to make it easier to customize the retry approach.
-        private static async Task<T> BasicRetryAsync<T>(Func<T> func)
+        private static async Task<T> BasicRetryAsync<T>(Func<Task<T>> func)
         {
             int reconnectRetry = 0;
             int disposedRetry = 0;
@@ -216,7 +217,7 @@ namespace Redistest
             {
                 try
                 {
-                    return func();
+                    return await func();
                 }
                 catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
                 {
@@ -234,73 +235,75 @@ namespace Redistest
             }
         }
 
-        public static Task<IDatabase> GetDatabaseAsync()
-        {
-            return BasicRetryAsync(() => Connection.GetDatabase());
-        }
-
-        public static Task<System.Net.EndPoint[]> GetEndPointsAsync()
-        {
-            return BasicRetryAsync(() => Connection.GetEndPoints());
-        }
-
-        public static Task<IServer> GetServerAsync(string host, int port)
-        {
-            return BasicRetryAsync(() => Connection.GetServer(host, port));
-        }
-
         static async Task Main(string[] args)
         {
             await InitializeAsync();
 
-            IDatabase cache = await GetDatabaseAsync();
+            IDatabase cache = Connection.GetDatabase();
 
             // Perform cache operations using the cache object...
+            Console.WriteLine("Running... Press 'q' to quit.");
+            ConsoleKey inputKey = ConsoleKey.A; // Init value, it may be anything different to Q
 
-            // Simple PING command
-            string cacheCommand = "PING";
-            Console.WriteLine("\nCache command  : " + cacheCommand);
-            Console.WriteLine("Cache response : " + (await cache.ExecuteAsync(cacheCommand)).ToString());
-
-            // Simple get and put of integral data types into the cache
-            cacheCommand = "GET Message";
-            Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
-            Console.WriteLine("Cache response : " + (await cache.StringGetAsync("Message")).ToString());
-
-            cacheCommand = "SET Message \"Hello! The cache is working from a .NET Core console app!\"";
-            Console.WriteLine("\nCache command  : " + cacheCommand + " or StringSet()");
-            Console.WriteLine("Cache response : " + (await cache.StringSetAsync("Message", "Hello! The cache is working from a .NET Core console app!")).ToString());
-
-            // Demonstrate "SET Message" executed as expected...
-            cacheCommand = "GET Message";
-            Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
-            Console.WriteLine("Cache response : " + (await cache.StringGetAsync("Message")).ToString());
-
-            // Get the client list, useful to see if connection list is growing...
-            // Note that this requires allowAdmin=true in the connection string
-            cacheCommand = "CLIENT LIST";
-            Console.WriteLine("\nCache command  : " + cacheCommand);
-            var endpoint = (System.Net.DnsEndPoint)(await GetEndPointsAsync())[0];
-            IServer server = await GetServerAsync(endpoint.Host, endpoint.Port);
-            ClientInfo[] clients = await server.ClientListAsync();
-
-            Console.WriteLine("Cache response :");
-            foreach (ClientInfo client in clients)
+            while (inputKey != ConsoleKey.Q)
             {
-                Console.WriteLine(client.Raw);
+                // Simple PING command
+                string cacheCommand = "PING";
+                Console.WriteLine("\nCache command  : " + cacheCommand);
+                RedisResult pingResult = await BasicRetryAsync(async () => await cache.ExecuteAsync(cacheCommand));
+                Console.WriteLine("Cache response : " + pingResult.ToString());
+
+                // Simple get and put of integral data types into the cache
+                cacheCommand = "GET Message";
+                Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
+                RedisValue getMessageResult = await BasicRetryAsync(async () => await cache.StringGetAsync("Message"));
+                Console.WriteLine("Cache response : " + getMessageResult.ToString());
+
+                cacheCommand = "SET Message \"Hello! The cache is working from a .NET Core console app!\"";
+                Console.WriteLine("\nCache command  : " + cacheCommand + " or StringSet()");
+                bool stringSetResult = await BasicRetryAsync(async () => await cache.StringSetAsync("Message", "Hello! The cache is working from a .NET Core console app!"));
+                Console.WriteLine("Cache response : " + stringSetResult.ToString());
+
+                // Demonstrate "SET Message" executed as expected...
+                cacheCommand = "GET Message";
+                Console.WriteLine("\nCache command  : " + cacheCommand + " or StringGet()");
+                getMessageResult = await BasicRetryAsync(async () => await cache.StringGetAsync("Message"));
+                Console.WriteLine("Cache response : " + getMessageResult.ToString());
+
+                // Get the client list, useful to see if connection list is growing...
+                // Note that this requires allowAdmin=true in the connection string
+                cacheCommand = "CLIENT LIST";
+                Console.WriteLine("\nCache command  : " + cacheCommand);
+                var endpoint = (System.Net.DnsEndPoint)Connection.GetEndPoints()[0];
+                IServer server = Connection.GetServer(endpoint.Host, endpoint.Port);
+                ClientInfo[] clients = await BasicRetryAsync(async () => await server.ClientListAsync());
+
+                Console.WriteLine("Cache response :");
+                foreach (ClientInfo client in clients)
+                {
+                    Console.WriteLine(client.Raw);
+                }
+
+                // Store .NET object to cache
+                Employee e007 = new Employee("007", "Davide Columbo", 100);
+                Console.WriteLine("Cache response from storing Employee .NET object : " +
+                await cache.StringSetAsync("e007", JsonConvert.SerializeObject(e007)));
+
+                // Retrieve .NET object from cache
+                getMessageResult = await BasicRetryAsync(async () => await cache.StringGetAsync("e007"));
+                Employee e007FromCache = JsonConvert.DeserializeObject<Employee>(getMessageResult);
+                Console.WriteLine("Deserialized Employee .NET object :\n");
+                Console.WriteLine("\tEmployee.Name : " + e007FromCache.Name);
+                Console.WriteLine("\tEmployee.Id   : " + e007FromCache.Id);
+                Console.WriteLine("\tEmployee.Age  : " + e007FromCache.Age + "\n");
+
+                Thread.Sleep(5000);
+
+                if (Console.KeyAvailable)
+                {
+                    inputKey = Console.ReadKey().Key;
+                }
             }
-
-            // Store .NET object to cache
-            Employee e007 = new Employee("007", "Davide Columbo", 100);
-            Console.WriteLine("Cache response from storing Employee .NET object : " +
-            await cache.StringSetAsync("e007", JsonConvert.SerializeObject(e007)));
-
-            // Retrieve .NET object from cache
-            Employee e007FromCache = JsonConvert.DeserializeObject<Employee>(await cache.StringGetAsync("e007"));
-            Console.WriteLine("Deserialized Employee .NET object :\n");
-            Console.WriteLine("\tEmployee.Name : " + e007FromCache.Name);
-            Console.WriteLine("\tEmployee.Id   : " + e007FromCache.Id);
-            Console.WriteLine("\tEmployee.Age  : " + e007FromCache.Age + "\n");
 
             await CloseConnectionAsync(_connection);
         }
