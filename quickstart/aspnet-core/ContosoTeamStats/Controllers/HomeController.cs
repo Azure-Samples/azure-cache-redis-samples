@@ -46,14 +46,17 @@ namespace ContosoTeamStats.Controllers
             ViewBag.command1Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.ExecuteAsync(ViewBag.command1))).ToString();
 
             // Simple get and put of integral data types into the cache
-            ViewBag.command2 = "GET Message";
-            ViewBag.command2Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("Message"))).ToString();
+            string key = "Message";
+            string value = "Hello! The cache is working from ASP.NET Core!";
 
-            ViewBag.command3 = "SET Message \"Hello! The cache is working from ASP.NET Core!\"";
-            ViewBag.command3Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("Message", "Hello! The cache is working from ASP.NET Core!"))).ToString();
+            ViewBag.command2 = $"GET {key}";
+            ViewBag.command2Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key))).ToString();
 
-            ViewBag.command4 = "GET Message";
-            ViewBag.command4Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("Message"))).ToString();
+            ViewBag.command3 = $"SET {key} \"{value}\"";
+            ViewBag.command3Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(key, value))).ToString();
+
+            ViewBag.command4 = $"GET {key}";
+            ViewBag.command4Result = (await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key))).ToString();
 
             return View();
         }

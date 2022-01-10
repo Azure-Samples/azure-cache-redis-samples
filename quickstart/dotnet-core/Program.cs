@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Redistest
@@ -12,9 +12,9 @@ namespace Redistest
         public string Name { get; set; }
         public int Age { get; set; }
 
-        public Employee(string employeeId, string name, int age)
+        public Employee(string id, string name, int age)
         {
-            Id = employeeId;
+            Id = id;
             Name = name;
             Age = age;
         }
@@ -25,7 +25,7 @@ namespace Redistest
         private static IConfigurationRoot _configuration;
         private static RedisConnection _redisConnection;
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             // Initialize
             var builder = new ConfigurationBuilder()
@@ -56,40 +56,38 @@ namespace Redistest
         {
 
             // Simple PING command
-            string cacheCommand = "PING";
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: {cacheCommand}");
-            RedisResult pingResult = await _redisConnection.BasicRetryAsync(async (db) => await db.ExecuteAsync(cacheCommand));
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: PING");
+            RedisResult pingResult = await _redisConnection.BasicRetryAsync(async (db) => await db.ExecuteAsync("PING"));
             Console.WriteLine($"{prefix}: Cache response: {pingResult}");
 
             // Simple get and put of integral data types into the cache
-            cacheCommand = "GET Message";
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: {cacheCommand} or StringGet()");
-            RedisValue getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("Message"));
+            string key = "Message";
+            string value = "Hello! The cache is working from a .NET Core console app!";
+
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            RedisValue getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 
-            cacheCommand = "SET Message \"Hello! The cache is working from a .NET Core console app!\"";
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: {cacheCommand} or StringSet()");
-            bool stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("Message", "Hello! The cache is working from a .NET Core console app!"));
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" or StringSetAsync()");
+            bool stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(key, value));
             Console.WriteLine($"{prefix}: Cache response: {stringSetResult}");
 
-            cacheCommand = "GET Message";
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: {cacheCommand} or StringGet()");
-            getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("Message"));
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 
             // Store serialized object to cache
             Employee e007 = new Employee("007", "Davide Columbo", 100);
-            stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("e007", JsonConvert.SerializeObject(e007)));
+            stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("e007", JsonSerializer.Serialize(e007)));
             Console.WriteLine($"{Environment.NewLine}{prefix}: Cache response from storing serialized Employee object: {stringSetResult}");
-
 
             // Retrieve serialized object from cache
             getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("e007"));
-            Employee e007FromCache = JsonConvert.DeserializeObject<Employee>(getMessageResult);
+            Employee e007FromCache = JsonSerializer.Deserialize<Employee>(getMessageResult.ToString());
             Console.WriteLine($"{prefix}: Deserialized Employee .NET object:{Environment.NewLine}");
-            Console.WriteLine($"\t{prefix}: Employee.Name : {e007FromCache.Name}");
-            Console.WriteLine($"\t{prefix}: Employee.Id   : {e007FromCache.Id}");
-            Console.WriteLine($"\t{prefix}: Employee.Age  : {e007FromCache.Age}{Environment.NewLine}");
+            Console.WriteLine($"{prefix}: Employee.Name : {e007FromCache.Name}");
+            Console.WriteLine($"{prefix}: Employee.Id   : {e007FromCache.Id}");
+            Console.WriteLine($"{prefix}: Employee.Age  : {e007FromCache.Age}{Environment.NewLine}");
         }
     }
 }
