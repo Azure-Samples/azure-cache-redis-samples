@@ -28,11 +28,16 @@ namespace ContosoTeamStats
         private SemaphoreSlim _initSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
+        private bool _didInitialize = false;
 
-        public RedisConnection()
+        public async Task InitializeAsync()
         {
-            _connection = CreateConnectionAsync().GetAwaiter().GetResult();
-            _database = _connection.GetDatabase();
+            if (!_didInitialize)
+            {
+                _didInitialize = true;
+                _connection = await CreateConnectionAsync();
+                _database = _connection.GetDatabase();
+            }
         }
 
         // In real applications, consider using a framework such as

@@ -30,12 +30,21 @@ namespace ContosoTeamStats
         private IConfiguration _configuration;
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
+        private bool _didInitialize = false;
 
         public RedisConnection(IConfiguration configuration)
         {
             _configuration = configuration;
-            _connection = CreateConnectionAsync().GetAwaiter().GetResult();
-            _database = _connection.GetDatabase();
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (!_didInitialize)
+            {
+                _didInitialize = true;
+                _connection = await CreateConnectionAsync();
+                _database = _connection.GetDatabase();
+            }
         }
 
         // In real applications, consider using a framework such as

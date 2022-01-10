@@ -5,7 +5,7 @@ namespace ContosoTeamStats.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly RedisConnection _redisConnection;
+        private static RedisConnection _redisConnection;
 
         public HomeController()
         {
@@ -33,6 +33,7 @@ namespace ContosoTeamStats.Controllers
 
         public async Task<ActionResult> RedisCache()
         {
+            await _redisConnection.InitializeAsync();
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET.";
 
             // Perform cache operations using the cache object...

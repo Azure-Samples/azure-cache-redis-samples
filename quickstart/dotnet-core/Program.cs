@@ -25,13 +25,14 @@ namespace Redistest
         private static IConfigurationRoot _configuration;
         private static RedisConnection _redisConnection;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             // Initialize
             var builder = new ConfigurationBuilder()
                 .AddUserSecrets<Program>();
             _configuration = builder.Build();
             _redisConnection = new RedisConnection(_configuration);
+            await _redisConnection.InitializeAsync();
 
             try
             {

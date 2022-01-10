@@ -23,9 +23,10 @@ namespace Redistest
     {
         private static RedisConnection _redisConnection;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             _redisConnection = new RedisConnection();
+            await _redisConnection.InitializeAsync();
 
             try
             {
