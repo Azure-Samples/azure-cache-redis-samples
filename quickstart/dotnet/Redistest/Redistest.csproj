@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StackExchange.Redis">
-      <Version>2.2.88</Version>
+      <Version>2.*</Version>
     </PackageReference>
     <PackageReference Include="System.Text.Json">
       <Version>6.0.1</Version>

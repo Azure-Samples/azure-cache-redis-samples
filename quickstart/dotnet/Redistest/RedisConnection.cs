@@ -13,14 +13,14 @@ namespace Redistest
         private DateTimeOffset _firstErrorTime = DateTimeOffset.MinValue;
         private DateTimeOffset _previousErrorTime = DateTimeOffset.MinValue;
 
-        // In general, let StackExchange.Redis handle most reconnects,
-        // so limit the frequency of how often ForceReconnect() will
-        // actually reconnect.
+        // StackExchange.Redis will also be trying to reconnect internally,
+        // so limit how often we recreate the ConnectionMultiplexer instance
+        // in an attempt to reconnect
         private TimeSpan _reconnectMinInterval = TimeSpan.FromSeconds(60);
 
-        // If errors continue for longer than the below threshold, then the
-        // multiplexer seems to not be reconnecting, so ForceReconnect() will
-        // re-create the multiplexer.
+        // If errors occur for longer than this threshold, StackExchange.Redis
+        // may be failing to reconnect internally, so we'll recreate the
+        // ConnectionMultiplexer instance
         private TimeSpan _reconnectErrorThreshold = TimeSpan.FromSeconds(30);
         private TimeSpan _restartConnectionTimeout = TimeSpan.FromSeconds(15);
         private const int _retryMaxAttempts = 5;
@@ -108,6 +108,7 @@ namespace Redistest
             {
                 return;
             }
+
             try
             {
                 await oldConnection.CloseAsync();
@@ -131,10 +132,9 @@ namespace Redistest
         /// </summary>
         private async Task ForceReconnectAsync()
         {
-            var utcNow = DateTimeOffset.UtcNow;
             long previousTicks = Interlocked.Read(ref _lastReconnectTicks);
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
-            TimeSpan elapsedSinceLastReconnect = utcNow - previousReconnectTime;
+            TimeSpan elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnectTime;
 
             // If multiple threads call ForceReconnectAsync at the same time, we only want to honor one of them.
             if (elapsedSinceLastReconnect < _reconnectMinInterval)
@@ -155,7 +155,7 @@ namespace Redistest
 
             try
             {
-                utcNow = DateTimeOffset.UtcNow;
+                var utcNow = DateTimeOffset.UtcNow;
                 elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
                 if (_firstErrorTime == DateTimeOffset.MinValue)
