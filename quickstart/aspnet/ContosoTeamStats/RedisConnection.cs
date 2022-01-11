@@ -1,5 +1,6 @@
 ﻿using StackExchange.Redis;
 using System;
+using System.Configuration;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,7 +98,7 @@ namespace ContosoTeamStats
                 }
 
                 // Otherwise, we really need to create a new connection.
-                string cacheConnection = @"michelle-standard-jan6.redis.cache.windows.net:6380,password=9LgWRLM8fU08GSChWNuCh27H8F9W8YiSbAzCaIIxS6E=,ssl=True,abortConnect=False";// ConfigurationManager.AppSettings["CacheConnection"].ToString();
+                string cacheConnection = ConfigurationManager.AppSettings["connectionString"].ToString();
                 return await ConnectionMultiplexer.ConnectAsync(cacheConnection);
             }
             finally
