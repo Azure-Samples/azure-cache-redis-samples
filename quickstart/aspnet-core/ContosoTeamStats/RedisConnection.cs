@@ -30,7 +30,7 @@ namespace ContosoTeamStats
         private IConfiguration _configuration;
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
-        private bool _didInitialize = false;
+        private bool _isInitialized = false;
 
         public RedisConnection(IConfiguration configuration)
         {
@@ -39,9 +39,9 @@ namespace ContosoTeamStats
 
         public async Task InitializeAsync()
         {
-            if (!_didInitialize)
+            if (!_isInitialized)
             {
-                _didInitialize = true;
+                _isInitialized = true;
                 _connection = await CreateConnectionAsync();
                 _database = _connection.GetDatabase();
             }
@@ -64,7 +64,10 @@ namespace ContosoTeamStats
                 {
                     reconnectRetry++;
                     if (reconnectRetry > _retryMaxAttempts)
+                    {
                         throw;
+                    }
+
                     try
                     {
                         await ForceReconnectAsync();
@@ -104,8 +107,8 @@ namespace ContosoTeamStats
                 }
 
                 // Otherwise, we really need to create a new connection.
-                string cacheConnection = _configuration["CacheConnection"].ToString();
-                return await ConnectionMultiplexer.ConnectAsync(cacheConnection);
+                string connectionString = _configuration["CacheConnection"].ToString();
+                return await ConnectionMultiplexer.ConnectAsync(connectionString);
             }
             finally
             {
@@ -147,7 +150,7 @@ namespace ContosoTeamStats
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
             TimeSpan elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnectTime;
 
-            // If multiple threads call ForceReconnectAsync at the same time, we only want to honor one of them.
+            // We want to limit how often we perform this top-level reconnect, so we check how long it's been since our last attempt.
             if (elapsedSinceLastReconnect < _reconnectMinInterval)
             {
                 return;

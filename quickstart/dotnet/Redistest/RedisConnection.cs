@@ -29,13 +29,13 @@ namespace Redistest
         private SemaphoreSlim _initSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
-        private bool _didInitialize = false;
+        private bool _isInitialized = false;
 
         public async Task InitializeAsync()
         {
-            if (!_didInitialize)
+            if (!_isInitialized)
             {
-                _didInitialize = true;
+                _isInitialized = true;
                 _connection = await CreateConnectionAsync();
                 _database = _connection.GetDatabase();
             }
@@ -58,7 +58,10 @@ namespace Redistest
                 {
                     reconnectRetry++;
                     if (reconnectRetry > _retryMaxAttempts)
+                    {
                         throw;
+                    }
+
                     try
                     {
                         await ForceReconnectAsync();
@@ -98,8 +101,8 @@ namespace Redistest
                 }
 
                 // Otherwise, we really need to create a new connection.
-                string cacheConnection = ConfigurationManager.AppSettings["CacheConnection"].ToString();
-                return await ConnectionMultiplexer.ConnectAsync(cacheConnection);
+                string connectionString = ConfigurationManager.AppSettings["CacheConnection"].ToString();
+                return await ConnectionMultiplexer.ConnectAsync(connectionString);
             }
             finally
             {
@@ -141,7 +144,7 @@ namespace Redistest
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
             TimeSpan elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnectTime;
 
-            // If multiple threads call ForceReconnectAsync at the same time, we only want to honor one of them.
+            // We want to limit how often we perform this top-level reconnect, so we check how long it's been since our last attempt.
             if (elapsedSinceLastReconnect < _reconnectMinInterval)
             {
                 return;
