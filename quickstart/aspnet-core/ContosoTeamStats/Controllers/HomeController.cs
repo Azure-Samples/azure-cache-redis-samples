@@ -10,12 +10,12 @@ namespace ContosoTeamStats.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private static RedisConnection _redisConnection;
+        private readonly RedisConnection _redisConnection;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, RedisConnection redisConnection)
         {
             _logger = logger;
-            _redisConnection = new RedisConnection(configuration);
+            _redisConnection = redisConnection;
         }
 
         public IActionResult Index()

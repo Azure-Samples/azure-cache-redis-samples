@@ -5,12 +5,8 @@ namespace ContosoTeamStats.Controllers
 {
     public class HomeController : Controller
     {
-        private static RedisConnection _redisConnection;
-
-        public HomeController()
-        {
-            _redisConnection = new RedisConnection();
-        }
+        // In a real-world application you may want to dependency-inject this connection.
+        private static RedisConnection _redisConnection = new RedisConnection();
 
         public ActionResult Index()
         {
