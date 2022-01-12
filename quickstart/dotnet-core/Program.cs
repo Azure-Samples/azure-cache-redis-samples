@@ -22,7 +22,6 @@ namespace Redistest
 
     class Program
     {
-        private static IConfigurationRoot _configuration;
         private static RedisConnection _redisConnection;
 
         static async Task Main(string[] args)
@@ -30,8 +29,8 @@ namespace Redistest
             // Initialize
             var builder = new ConfigurationBuilder()
                 .AddUserSecrets<Program>();
-            _configuration = builder.Build();
-            _redisConnection = new RedisConnection(_configuration);
+            var configuration = builder.Build();
+            _redisConnection = new RedisConnection(connectionString: configuration["CacheConnection"].ToString());
             await _redisConnection.InitializeAsync();
 
             try
@@ -65,15 +64,15 @@ namespace Redistest
             string key = "Message";
             string value = "Hello! The cache is working from a .NET Core console app!";
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
             RedisValue getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" or StringSetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" via StringSetAsync()");
             bool stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(key, value));
             Console.WriteLine($"{prefix}: Cache response: {stringSetResult}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
             getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 

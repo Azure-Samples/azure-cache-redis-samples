@@ -1,5 +1,6 @@
 ﻿using StackExchange.Redis;
 using System;
+using System.Configuration;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Redistest
 
         static async Task Main(string[] args)
         {
-            _redisConnection = new RedisConnection();
+            _redisConnection = new RedisConnection(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
             await _redisConnection.InitializeAsync();
 
             try
@@ -58,15 +59,15 @@ namespace Redistest
             string key = "Message";
             string value = "Hello! The cache is working from a .NET console app!";
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
             RedisValue getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" or StringSetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" via StringSetAsync()");
             bool stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(key, value));
             Console.WriteLine($"{prefix}: Cache response: {stringSetResult}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} or StringGetAsync()");
+            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
             getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
             Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
 

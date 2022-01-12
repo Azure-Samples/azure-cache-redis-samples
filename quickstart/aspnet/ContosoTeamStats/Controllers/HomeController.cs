@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Configuration;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace ContosoTeamStats.Controllers
@@ -6,7 +7,7 @@ namespace ContosoTeamStats.Controllers
     public class HomeController : Controller
     {
         // In a real-world application you may want to dependency-inject this connection.
-        private static RedisConnection _redisConnection = new RedisConnection();
+        private static RedisConnection _redisConnection = new RedisConnection(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
 
         public ActionResult Index()
         {

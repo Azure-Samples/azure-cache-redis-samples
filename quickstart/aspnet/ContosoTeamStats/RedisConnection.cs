@@ -1,6 +1,5 @@
 ﻿using StackExchange.Redis;
 using System;
-using System.Configuration;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,18 +25,20 @@ namespace ContosoTeamStats
         private const int _retryMaxAttempts = 5;
 
         private SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
-        private SemaphoreSlim _initSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+        private readonly string _connectionString;
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
-        private bool _isInitialized = false;
+
+        public RedisConnection(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
 
         public async Task InitializeAsync()
         {
-            if (!_isInitialized)
+            if (_connection == null)
             {
-                _isInitialized = true;
-                _connection = await CreateConnectionAsync();
-                _database = _connection.GetDatabase();
+                await ForceReconnectAsync(initializing: true);
             }
         }
 
@@ -71,62 +72,6 @@ namespace ContosoTeamStats
             }
         }
 
-        // This method may return null if it fails to acquire the semaphore in time.
-        // Use the return value to update the "connection" field
-        private async Task<ConnectionMultiplexer> CreateConnectionAsync()
-        {
-            if (_connection != null)
-            {
-                // If we already have a good connection, let's re-use it
-                return _connection;
-            }
-
-            try
-            {
-                await _initSemaphore.WaitAsync(_restartConnectionTimeout);
-            }
-            catch
-            {
-                // We failed to enter the semaphore in the given amount of time. Connection will either be null, or have a value that was created by another thread.
-                return _connection;
-            }
-
-            // We entered the semaphore successfully.
-            try
-            {
-                if (_connection != null)
-                {
-                    // Another thread must have finished creating a new connection while we were waiting to enter the semaphore. Let's use it
-                    return _connection;
-                }
-
-                // Otherwise, we really need to create a new connection.
-                string connectionString = ConfigurationManager.AppSettings["CacheConnection"].ToString();
-                return await ConnectionMultiplexer.ConnectAsync(connectionString);
-            }
-            finally
-            {
-                _initSemaphore.Release();
-            }
-        }
-
-        private static async Task CloseConnectionAsync(ConnectionMultiplexer oldConnection)
-        {
-            if (oldConnection == null)
-            {
-                return;
-            }
-
-            try
-            {
-                await oldConnection.CloseAsync();
-            }
-            catch (Exception)
-            {
-                // Ignore any errors from the oldConnection
-            }
-        }
-
         /// <summary>
         /// Force a new ConnectionMultiplexer to be created.
         /// NOTES:
@@ -138,7 +83,8 @@ namespace ContosoTeamStats
         ///         a. wait to reconnect for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinInterval"
         /// </summary>
-        private async Task ForceReconnectAsync()
+        /// <param name="initializing">Should only be true when ForceReconnect is running at startup.</param>
+        private async Task ForceReconnectAsync(bool initializing = false)
         {
             long previousTicks = Interlocked.Read(ref _lastReconnectTicks);
             var previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
@@ -166,7 +112,7 @@ namespace ContosoTeamStats
                 var utcNow = DateTimeOffset.UtcNow;
                 elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
-                if (_firstErrorTime == DateTimeOffset.MinValue)
+                if (_firstErrorTime == DateTimeOffset.MinValue && !initializing)
                 {
                     // We haven't seen an error since last reconnect, so set initial values.
                     _firstErrorTime = utcNow;
@@ -189,7 +135,7 @@ namespace ContosoTeamStats
                 // Update the previousErrorTime timestamp to be now (e.g. this reconnect request).
                 _previousErrorTime = utcNow;
 
-                if (!shouldReconnect)
+                if (!shouldReconnect && !initializing)
                 {
                     return;
                 }
@@ -198,10 +144,19 @@ namespace ContosoTeamStats
                 _previousErrorTime = DateTimeOffset.MinValue;
 
                 ConnectionMultiplexer oldConnection = _connection;
-                await CloseConnectionAsync(oldConnection);
+                try
+                {
+                    await oldConnection.CloseAsync();
+                }
+                catch (Exception)
+                {
+                    // Ignore any errors from the oldConnection
+                }
+
                 Interlocked.Exchange(ref _connection, null);
-                ConnectionMultiplexer newConnection = await CreateConnectionAsync();
+                ConnectionMultiplexer newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
                 Interlocked.Exchange(ref _connection, newConnection);
+
                 Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
                 IDatabase newDatabase = _connection.GetDatabase();
                 Interlocked.Exchange(ref _database, newDatabase);

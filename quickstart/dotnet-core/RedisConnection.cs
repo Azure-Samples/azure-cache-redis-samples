@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using System;
 using System.Net.Sockets;
 using System.Threading;
@@ -30,9 +29,9 @@ namespace Redistest
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
 
-        public RedisConnection(IConfigurationRoot configuration)
+        public RedisConnection(string connectionString)
         {
-            _connectionString = configuration["CacheConnection"].ToString();
+            _connectionString = connectionString;
         }
 
         public async Task InitializeAsync()
@@ -84,6 +83,7 @@ namespace Redistest
         ///         a. wait to reconnect for at least the "ReconnectErrorThreshold" time of repeated errors before actually reconnecting
         ///         b. not reconnect more frequently than configured in "ReconnectMinInterval"
         /// </summary>
+        /// <param name="initializing">Should only be true when ForceReconnect is running at startup.</param>
         private async Task ForceReconnectAsync(bool initializing = false)
         {
             long previousTicks = Interlocked.Read(ref _lastReconnectTicks);
