@@ -24,7 +24,7 @@ namespace ContosoTeamStats
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddSingleton(new RedisConnection(connectionString: Configuration["CacheConnection"].ToString()));
+            services.AddSingleton(async x => await RedisConnection.InitializeAsync(connectionString: Configuration["CacheConnection"].ToString()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

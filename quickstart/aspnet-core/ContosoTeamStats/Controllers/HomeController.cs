@@ -1,5 +1,6 @@
 using ContosoTeamStats.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -10,12 +11,15 @@ namespace ContosoTeamStats.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly RedisConnection _redisConnection;
+        private readonly IConfiguration _configuration;
+        private readonly Task<RedisConnection> _redisConnectionFactory;
+        private RedisConnection _redisConnection;
 
-        public HomeController(ILogger<HomeController> logger, RedisConnection redisConnection)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, Task<RedisConnection> redisConnectionFactory)
         {
             _logger = logger;
-            _redisConnection = redisConnection;
+            _configuration = configuration;
+            _redisConnectionFactory = redisConnectionFactory;
         }
 
         public IActionResult Index()
@@ -36,7 +40,7 @@ namespace ContosoTeamStats.Controllers
 
         public async Task<ActionResult> RedisCache()
         {
-            await _redisConnection.InitializeAsync();
+            _redisConnection = await _redisConnectionFactory;
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET Core.";
 
             // Perform cache operations using the cache object...

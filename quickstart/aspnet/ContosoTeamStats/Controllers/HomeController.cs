@@ -8,7 +8,8 @@ namespace ContosoTeamStats.Controllers
     public class HomeController : Controller
     {
         // In a real-world application you may want to dependency-inject this connection.
-        private static RedisConnection _redisConnection = new RedisConnection(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
+        private static Task<RedisConnection> _redisConnectionFactory = RedisConnection.InitializeAsync(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
+        private RedisConnection _redisConnection;
 
         public ActionResult Index()
         {
@@ -31,7 +32,7 @@ namespace ContosoTeamStats.Controllers
 
         public async Task<ActionResult> RedisCache()
         {
-            await _redisConnection.InitializeAsync();
+            _redisConnection = await _redisConnectionFactory;
             ViewBag.Message = "A simple example with Azure Cache for Redis on ASP.NET.";
 
             // Perform cache operations using the cache object...

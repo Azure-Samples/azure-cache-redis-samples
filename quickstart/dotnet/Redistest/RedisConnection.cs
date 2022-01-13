@@ -15,13 +15,13 @@ namespace Redistest
         // StackExchange.Redis will also be trying to reconnect internally,
         // so limit how often we recreate the ConnectionMultiplexer instance
         // in an attempt to reconnect
-        private TimeSpan _reconnectMinInterval = TimeSpan.FromSeconds(60);
+        private readonly TimeSpan _reconnectMinInterval = TimeSpan.FromSeconds(60);
 
         // If errors occur for longer than this threshold, StackExchange.Redis
         // may be failing to reconnect internally, so we'll recreate the
         // ConnectionMultiplexer instance
-        private TimeSpan _reconnectErrorThreshold = TimeSpan.FromSeconds(30);
-        private TimeSpan _restartConnectionTimeout = TimeSpan.FromSeconds(15);
+        private readonly TimeSpan _reconnectErrorThreshold = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _restartConnectionTimeout = TimeSpan.FromSeconds(15);
         private const int _retryMaxAttempts = 5;
 
         private SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
@@ -29,17 +29,17 @@ namespace Redistest
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
 
-        public RedisConnection(string connectionString)
+        private RedisConnection(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public async Task InitializeAsync()
+        public static async Task<RedisConnection> InitializeAsync(string connectionString)
         {
-            if (_connection == null)
-            {
-                await ForceReconnectAsync(initializing: true);
-            }
+            var redisConnection = new RedisConnection(connectionString);
+            await redisConnection.ForceReconnectAsync(initializing: true);
+
+            return redisConnection;
         }
 
         // In real applications, consider using a framework such as
@@ -146,7 +146,7 @@ namespace Redistest
                 ConnectionMultiplexer oldConnection = _connection;
                 try
                 {
-                    await oldConnection.CloseAsync();
+                    await oldConnection?.CloseAsync();
                 }
                 catch (Exception)
                 {
@@ -169,7 +169,7 @@ namespace Redistest
 
         public void Dispose()
         {
-            try { _connection.Close(); } catch { }
+            try { _connection?.Dispose(); } catch { }
         }
     }
 }

@@ -30,8 +30,7 @@ namespace Redistest
             var builder = new ConfigurationBuilder()
                 .AddUserSecrets<Program>();
             var configuration = builder.Build();
-            _redisConnection = new RedisConnection(connectionString: configuration["CacheConnection"].ToString());
-            await _redisConnection.InitializeAsync();
+            _redisConnection = await RedisConnection.InitializeAsync(connectionString: configuration["CacheConnection"].ToString());
 
             try
             {
