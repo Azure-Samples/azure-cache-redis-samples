@@ -15,14 +15,14 @@ namespace ContosoTeamStats
         // StackExchange.Redis will also be trying to reconnect internally,
         // so limit how often we recreate the ConnectionMultiplexer instance
         // in an attempt to reconnect
-        private readonly TimeSpan _reconnectMinInterval = TimeSpan.FromSeconds(60);
+        private readonly TimeSpan ReconnectMinInterval = TimeSpan.FromSeconds(60);
 
         // If errors occur for longer than this threshold, StackExchange.Redis
         // may be failing to reconnect internally, so we'll recreate the
         // ConnectionMultiplexer instance
-        private readonly TimeSpan _reconnectErrorThreshold = TimeSpan.FromSeconds(30);
-        private readonly TimeSpan _restartConnectionTimeout = TimeSpan.FromSeconds(15);
-        private const int _retryMaxAttempts = 5;
+        private readonly TimeSpan ReconnectErrorThreshold = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan RestartConnectionTimeout = TimeSpan.FromSeconds(15);
+        private const int RetryMaxAttempts = 5;
 
         private SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         private readonly string _connectionString;
@@ -58,7 +58,7 @@ namespace ContosoTeamStats
                 catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
                 {
                     reconnectRetry++;
-                    if (reconnectRetry > _retryMaxAttempts)
+                    if (reconnectRetry > RetryMaxAttempts)
                     {
                         throw;
                     }
@@ -91,14 +91,14 @@ namespace ContosoTeamStats
             TimeSpan elapsedSinceLastReconnect = DateTimeOffset.UtcNow - previousReconnectTime;
 
             // We want to limit how often we perform this top-level reconnect, so we check how long it's been since our last attempt.
-            if (elapsedSinceLastReconnect < _reconnectMinInterval)
+            if (elapsedSinceLastReconnect < ReconnectMinInterval)
             {
                 return;
             }
 
             try
             {
-                await _reconnectSemaphore.WaitAsync(_restartConnectionTimeout);
+                await _reconnectSemaphore.WaitAsync(RestartConnectionTimeout);
             }
             catch
             {
@@ -120,7 +120,7 @@ namespace ContosoTeamStats
                     return;
                 }
 
-                if (elapsedSinceLastReconnect < _reconnectMinInterval)
+                if (elapsedSinceLastReconnect < ReconnectMinInterval)
                 {
                     return; // Some other thread made it through the check and the lock, so nothing to do.
                 }
@@ -129,8 +129,8 @@ namespace ContosoTeamStats
                 TimeSpan elapsedSinceMostRecentError = utcNow - _previousErrorTime;
 
                 bool shouldReconnect =
-                    elapsedSinceFirstError >= _reconnectErrorThreshold // Make sure we gave the multiplexer enough time to reconnect on its own if it could.
-                    && elapsedSinceMostRecentError <= _reconnectErrorThreshold; // Make sure we aren't working on stale data (e.g. if there was a gap in errors, don't reconnect yet).
+                    elapsedSinceFirstError >= ReconnectErrorThreshold // Make sure we gave the multiplexer enough time to reconnect on its own if it could.
+                    && elapsedSinceMostRecentError <= ReconnectErrorThreshold; // Make sure we aren't working on stale data (e.g. if there was a gap in errors, don't reconnect yet).
 
                 // Update the previousErrorTime timestamp to be now (e.g. this reconnect request).
                 _previousErrorTime = utcNow;
