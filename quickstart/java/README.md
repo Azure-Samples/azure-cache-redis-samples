@@ -32,6 +32,11 @@ export REDISCACHEHOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
 export REDISCACHEKEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
+```powershell
+$env:REDISCACHEHOSTNAME = '<YOUR_HOST_NAME>.redis.cache.windows.net'
+$env:REDISCACHEKEY = '<YOUR_PRIMARY_ACCESS_KEY>'
+```
+
 Replace the placeholders with the following values:
 
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
