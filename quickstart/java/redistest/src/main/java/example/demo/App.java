@@ -1,7 +1,7 @@
 package example.demo;
 
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisShardInfo;
 
 /**
  * Redis test
@@ -17,13 +17,14 @@ public class App
         String cachekey = System.getenv("REDISCACHEKEY");
 
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key.
-        JedisShardInfo shardInfo = new JedisShardInfo(cacheHostname, 6380, useSsl);
-        shardInfo.setPassword(cachekey); /* Use your access key. */
-        Jedis jedis = new Jedis(shardInfo);      
+        Jedis jedis = new Jedis(cacheHostname, 6380, DefaultJedisClientConfig.builder()
+            .password(cachekey)
+            .ssl(useSsl)
+            .build());
 
         // Perform cache operations using the cache connection object...
 
-        // Simple PING command        
+        // Simple PING command
         System.out.println( "\nCache Command  : Ping" );
         System.out.println( "Cache Response : " + jedis.ping());
 
