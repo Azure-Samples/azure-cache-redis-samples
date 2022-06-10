@@ -146,7 +146,7 @@ namespace ContosoTeamStats
                 ConnectionMultiplexer oldConnection = _connection;
                 try
                 {
-                    await oldConnection?.CloseAsync();
+                    await (oldConnection?.CloseAsync() ?? Task.CompletedTask);
                 }
                 catch (Exception)
                 {
