@@ -8,8 +8,10 @@ namespace ContosoTeamStats
         // For more information on bundling, visit https://go.microsoft.com/fwlink/?LinkId=301862
         public static void RegisterBundles(BundleCollection bundles)
         {
-            bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
-                        "~/Scripts/jquery-{version}.js"));
+            var jqueryCdn = "https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.js";
+
+            bundles.Add(new ScriptBundle("~/bundles/jquery", jqueryCdn).Include(
+                        "~/Scripts/jquery-3.3.1.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.js"));
