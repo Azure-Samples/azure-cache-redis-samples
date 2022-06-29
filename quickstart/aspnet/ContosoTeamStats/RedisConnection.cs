@@ -143,18 +143,18 @@ namespace ContosoTeamStats
                 _firstErrorTime = DateTimeOffset.MinValue;
                 _previousErrorTime = DateTimeOffset.MinValue;
 
-                ConnectionMultiplexer oldConnection = _connection;
-                try
+                if (_connection != null)
                 {
-                    if (oldConnection != null)
+                    try
                     {
-                        await oldConnection?.CloseAsync();
+                        await _connection.CloseAsync();
+                    }
+                    catch
+                    {
+                        // Ignore any errors from the old connection
                     }
                 }
-                catch (Exception)
-                {
-                    // Ignore any errors from the oldConnection
-                }
+
 
                 Interlocked.Exchange(ref _connection, null);
                 ConnectionMultiplexer newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
