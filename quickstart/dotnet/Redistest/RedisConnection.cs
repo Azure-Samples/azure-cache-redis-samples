@@ -143,14 +143,16 @@ namespace Redistest
                 _firstErrorTime = DateTimeOffset.MinValue;
                 _previousErrorTime = DateTimeOffset.MinValue;
 
-                ConnectionMultiplexer oldConnection = _connection;
-                try
+                if (_connection != null)
                 {
-                    await oldConnection?.CloseAsync();
-                }
-                catch (Exception)
-                {
-                    // Ignore any errors from the oldConnection
+                    try
+                    {
+                        await _connection.CloseAsync();
+                    }
+                    catch
+                    {
+                        // Ignore any errors from the old connection
+                    }
                 }
 
                 Interlocked.Exchange(ref _connection, null);
