@@ -69,6 +69,7 @@ namespace ContosoTeamStats
                     }
                     catch (ObjectDisposedException) { }
                 }
+                catch (ObjectDisposedException) {}
             }
         }
 
