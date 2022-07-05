@@ -55,7 +55,7 @@ namespace ContosoTeamStats
                 {
                     return await func(_database);
                 }
-                catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException)
+                catch (Exception ex) when (ex is RedisConnectionException || ex is SocketException || ex is ObjectDisposedException)
                 {
                     reconnectRetry++;
                     if (reconnectRetry > RetryMaxAttempts)
@@ -67,9 +67,11 @@ namespace ContosoTeamStats
                     {
                         await ForceReconnectAsync();
                     }
-                    catch (ObjectDisposedException) { }
+                    catch (ObjectDisposedException) {
+                        return await func(_database);
+                    }
                 }
-                catch (ObjectDisposedException) {}
+                catch (Exception) {}
             }
         }
 
