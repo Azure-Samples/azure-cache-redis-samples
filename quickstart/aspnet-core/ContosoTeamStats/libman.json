@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "jquery@3.3.1",
+      "library": "jquery@3.6.0",
       "destination": "wwwroot/lib/jquery/",
       "files": [
         "jquery.min.js",
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "library": "twitter-bootstrap@4.3.1",
+      "library": "twitter-bootstrap@5.1.3",
       "destination": "wwwroot/lib/bootstrap/"
     },
     {
@@ -20,7 +20,7 @@
       "destination": "wwwroot/jquery-validation-unobtrusive/"
     },
     {
-      "library": "jquery-validate@1.17.0",
+      "library": "jquery-validate@1.19.4",
       "destination": "wwwroot/jquery-validate/",
       "files": [
         "jquery.validate.min.js",
