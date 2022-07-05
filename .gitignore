@@ -1,0 +1,25 @@
+bin
+obj
+
+; Compiled Programs
+*.exe
+*.dll
+
+; Visual Studio user state
+*.user
+*.suo
+.vs
+
+; VC++/C# debug info files
+*.idb
+*.pdb
+*.sdf
+
+packages
+
+; Web Files
+*.js
+!quickstart/nodejs/redistest.js
+*.css
+*.map
+*.scss
