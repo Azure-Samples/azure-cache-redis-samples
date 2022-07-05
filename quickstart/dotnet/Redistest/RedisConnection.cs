@@ -67,7 +67,7 @@ namespace Redistest
                     {
                         await ForceReconnectAsync();
                     }
-                    catch (ObjectDisposedException) {
+                    catch (Exception) {
                         return await func(_database);
                     }
                 }
