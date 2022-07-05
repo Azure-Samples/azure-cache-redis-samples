@@ -67,11 +67,10 @@ namespace ContosoTeamStats
                     {
                         await ForceReconnectAsync();
                     }
-                    catch (Exception) {
-                        return await func(_database);
-                    }
+                    catch (ObjectDisposedException) { }
+
+                    return await func(_database);
                 }
-                catch (Exception) {}
             }
         }
 
