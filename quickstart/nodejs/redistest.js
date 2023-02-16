@@ -2,18 +2,18 @@ var redis = require("redis");
 require('dotenv').config()
 
 // Environment variables for cache
-const cacheHostName = process.env.AZURE_CACHE_FOR_REDIS_RESOURCE_NAME;
-const cachePassword = process.env.AZURE_CACHE_FOR_REDIS_RESOURCE_KEY;
+const cacheHostName = process.env.AZURE_CACHE_FOR_REDIS_HOST_NAME;
+const cachePassword = process.env.AZURE_CACHE_FOR_REDIS_ACCESS_KEY;
 
-if(!cacheHostName) throw Error("cacheHostName is empty")
-if(!cachePassword) throw Error("cachePassword is empty")
+if(!cacheHostName) throw Error("AZURE_CACHE_FOR_REDIS_HOST_NAME is empty")
+if(!cachePassword) throw Error("AZURE_CACHE_FOR_REDIS_ACCESS_KEY is empty")
 
 async function testCache() {
 
     // Connection configuration
     const cacheConnection = redis.createClient({
         // rediss for TLS
-        url: `rediss://${cacheHostName}.redis.cache.windows.net:6380`,
+        url: `rediss://${cacheHostName}:6380`,
         password: cachePassword
     });
 
