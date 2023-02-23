@@ -1,41 +1,49 @@
 var redis = require("redis");
 
+// Environment variables for cache
+const cacheHostName = process.env.AZURE_CACHE_FOR_REDIS_HOST_NAME;
+const cachePassword = process.env.AZURE_CACHE_FOR_REDIS_ACCESS_KEY;
+
+if(!cacheHostName) throw Error("AZURE_CACHE_FOR_REDIS_HOST_NAME is empty")
+if(!cachePassword) throw Error("AZURE_CACHE_FOR_REDIS_ACCESS_KEY is empty")
+
 async function testCache() {
 
-    // Connect to the Azure Cache for Redis over the TLS port using the key.
-    var cacheHostName = process.env.REDISCACHEHOSTNAME;
-    var cachePassword = process.env.REDISCACHEKEY;
-    var cacheConnection = redis.createClient({
+    // Connection configuration
+    const cacheConnection = redis.createClient({
         // rediss for TLS
-        url: "rediss://" + cacheHostName + ":6380",
-        password: cachePassword,
+        url: `rediss://${cacheHostName}:6380`,
+        password: cachePassword
     });
+
+    // Connect to Redis
     await cacheConnection.connect();
 
-    // Perform cache operations using the cache connection object...
-
-    // Simple PING command
+    // PING command
     console.log("\nCache command: PING");
     console.log("Cache response : " + await cacheConnection.ping());
 
-    // Simple get and put of integral data types into the cache
+    // GET
     console.log("\nCache command: GET Message");
     console.log("Cache response : " + await cacheConnection.get("Message"));
 
+    // SET
     console.log("\nCache command: SET Message");
     console.log("Cache response : " + await cacheConnection.set("Message",
         "Hello! The cache is working from Node.js!"));
 
-    // Demonstrate "SET Message" executed as expected...
+    // GET again
     console.log("\nCache command: GET Message");
     console.log("Cache response : " + await cacheConnection.get("Message"));
 
-    // Get the client list, useful to see if connection list is growing...
+    // Client list, useful to see if connection list is growing...
     console.log("\nCache command: CLIENT LIST");
     console.log("Cache response : " + await cacheConnection.sendCommand(["CLIENT", "LIST"]));
 
-    console.log("\nDone");
-    process.exit();
+    // Disconnect
+    cacheConnection.disconnect()
+
+    return "Done"
 }
 
-testCache();
+testCache().then((result) => console.log(result)).catch(ex => console.log(ex));
