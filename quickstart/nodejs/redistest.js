@@ -1,5 +1,4 @@
 var redis = require("redis");
-require('dotenv').config()
 
 // Environment variables for cache
 const cacheHostName = process.env.AZURE_CACHE_FOR_REDIS_HOST_NAME;
