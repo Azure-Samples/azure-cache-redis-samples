@@ -26,8 +26,8 @@ For examples of using other Node.js clients, see the individual documentation fo
 Add environment variables for your cache's **HOST NAME** and **Primary** access key. You will use these variables from your code instead of including the sensitive information directly in your code.
 
 ```
-set AZURE_CACHE_FOR_REDIS_RESOURCE_NAME=contosoCache
-set AZURE_CACHE_FOR_REDIS_RESOURCE_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+set AZURE_CACHE_FOR_REDIS_HOST_NAME=contosoCache
+set AZURE_CACHE_FOR_REDIS_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 ## Run the sample
