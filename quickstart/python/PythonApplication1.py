@@ -18,4 +18,4 @@ print("GET Message returned : " + result.decode("utf-8"))
 result = r.client_list()
 print("CLIENT LIST returned : ")
 for c in result:
-    print(f "id : {c['id']}, addr : {c['addr']}")
+    print(f"id : {c['id']}, addr : {c['addr']}")
