@@ -1,0 +1,32 @@
+﻿@model eShop.Models.Product
+@{
+    ViewData["Title"] = "ShoppingCart item create page";
+}
+
+<div>
+    <h4>@ViewData["messageFailed"]</h4>
+</div>
+
+<div>
+    <h4>@ViewData["messageSuccess"]</h4>
+</div>
+
+
+<div>
+    <h4>Time taken: @ViewData["AddToCartTimeMS"] milli-seconds</h4>
+</div>
+
+<div>
+    @if (Model != null)
+    {
+        <div>
+            Item added:
+        </div>
+        <card>
+            <img src="@Model.Image" width="400" height="400"/>
+            <h4><b>@Model.Name</b></h4>
+            <p>@Model.Price</p>
+        </card>
+        
+    }
+</div>

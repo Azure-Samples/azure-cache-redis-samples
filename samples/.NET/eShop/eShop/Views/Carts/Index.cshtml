@@ -1,0 +1,53 @@
+﻿@model IEnumerable<eShop.ViewModel.ShoppingCartItem>
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Shopping Cart</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div>
+    <h4>
+        Shopping cart page load time: @ViewData["cartLoadTime"] milli-seconds
+    </h4>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Items to purchase
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Quantity)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name) (@Html.DisplayFor(modelItem => item.Price))
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Quantity)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @{
+        var _item = Model.Where(item => item.Quantity != 0).FirstOrDefault();
+        if (_item != null)
+        {
+            <form asp-controller="Carts" asp-action="Delete">
+                <input class="button" value="Check Out" type="submit" />
+                <input type="hidden" asp-for="@_item.CartId" name="CartId" />
+            </form>
+        }
+
+    }
+
+</div>
