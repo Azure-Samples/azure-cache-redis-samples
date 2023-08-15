@@ -68,8 +68,6 @@ namespace ContosoTeamStats
                         await ForceReconnectAsync();
                     }
                     catch (ObjectDisposedException) { }
-
-                    return await func(_database);
                 }
             }
         }
