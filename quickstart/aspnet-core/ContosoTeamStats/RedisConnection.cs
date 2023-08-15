@@ -98,11 +98,8 @@ namespace ContosoTeamStats
                 return;
             }
 
-            try
-            {
-                await _reconnectSemaphore.WaitAsync(RestartConnectionTimeout);
-            }
-            catch
+            bool lockTaken = await _reconnectSemaphore.WaitAsync(RestartConnectionTimeout);
+            if (!lockTaken)
             {
                 // If we fail to enter the semaphore, then it is possible that another thread has already done so.
                 // ForceReconnectAsync() can be retried while connectivity problems persist.
@@ -112,6 +109,8 @@ namespace ContosoTeamStats
             try
             {
                 var utcNow = DateTimeOffset.UtcNow;
+                previousTicks = Interlocked.Read(ref _lastReconnectTicks);
+                previousReconnectTime = new DateTimeOffset(previousTicks, TimeSpan.Zero);
                 elapsedSinceLastReconnect = utcNow - previousReconnectTime;
 
                 if (_firstErrorTime == DateTimeOffset.MinValue && !initializing)
