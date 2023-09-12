@@ -6,7 +6,7 @@ name: 'Quickstart: Use Azure Cache for Redis in .NET Core'
 description: Learn how to incorporate Azure Cache for Redis into a C# .NET Core console app using the StackExchange.Redis Redis client.
 products:
 - azure
-- dotnet-core
+- dotnet
 - azure-cache-redis
 ---
 # Quickstart: Use Azure Cache for Redis in .NET Core
