@@ -142,11 +142,17 @@ namespace Redistest
                 _firstErrorTime = DateTimeOffset.MinValue;
                 _previousErrorTime = DateTimeOffset.MinValue;
 
-                if (_connection != null)
+                // Create a new connection
+                ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
+
+                // Swap current connection with the new connection
+                ConnectionMultiplexer _oldConnection = Interlocked.Exchange(ref _connection, _newConnection);
+
+                if (_oldConnection != null)
                 {
                     try
                     {
-                        await _connection.CloseAsync();
+                        await _oldConnection.CloseAsync();
                     }
                     catch
                     {
@@ -154,9 +160,8 @@ namespace Redistest
                     }
                 }
 
-                Interlocked.Exchange(ref _connection, null);
-                ConnectionMultiplexer newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
-                Interlocked.Exchange(ref _connection, newConnection);
+                // Dispose old connection
+                Interlocked.Exchange(ref _oldConnection, null);
 
                 Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
                 IDatabase newDatabase = _connection.GetDatabase();
