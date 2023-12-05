@@ -23,13 +23,13 @@ This sample show you how to incorporate Azure Cache for Redis into a Java app us
 Depending on your operating system, add environment variables for your cache's **Host name** and **Primary access key**. Open a command prompt, or a terminal window, and set up the following values:
 
 ```CMD
-set REDISCACHEHOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-set REDISCACHEKEY=<YOUR_PRIMARY_ACCESS_KEY>
+set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+set REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 ```bash
-export REDISCACHEHOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-export REDISCACHEKEY=<YOUR_PRIMARY_ACCESS_KEY>
+export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+export REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 Replace the placeholders with the following values:
