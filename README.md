@@ -9,6 +9,7 @@ languages:
 - nodejs
 - python
 - rust
+- php
 name: Azure Cache for Redis samples
 description: Learn how to use Azure Cache for Redis to have access to a secure, dedicated cache that is accessible from any application within Azure.
 products:
@@ -41,19 +42,20 @@ Please see the description of each individual sample for instructions on how to 
 The following quickstarts demonstrate how to incorporate Azure Cache for Redis into an app.
 If you want to create one of the quickstart apps from scratch, please follow the corresponding article on the [documentation site](https://docs.microsoft.com/azure/azure-cache-for-redis).
 
-| Quickstart | Platform | Description |
-| ---------- | -------- | ----------- |
-| [Quickstart ASP.NET for Windows](/quickstart/aspnet) | Windows | Learn how to use an ASP.NET web application to connect to Azure Cache for Redis to store and retrieve data from the cache. |
-| [Quickstart ASP.NET Core](/quickstart/aspnet-core) | Windows, Linux, macOS | Learn how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. |
-| [Quickstart C# .NET for Windows](/quickstart/dotnet) | Windows | Learn how to incorporate Azure Cache for Redis into a C# .NET Framework console app using the StackExchange.Redis Redis client. |
-| [Quickstart C# .NET Core](/quickstart/dotnet-core) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a C# .NET Core console app using the StackExchange.Redis Redis client. |
-| [Quickstart Java](/quickstart/java) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Jedis Redis client. |
-| [Quickstart Java Redisson](/quickstart/java-redisson) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Redisson Redis client. |
-| [Quickstart Java Redisson JCache](/quickstart/java-redisson-jcache) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the [JSR-107 JCache standard](https://jcp.org/en/jsr/detail?id=107) support in the Redisson Redis client. |
-| [Quickstart Node.js](/quickstart/nodejs) | Node.js | Learn how to incorporate Azure Cache for Redis into a Node.js app. |
-| [Quickstart Python](/quickstart/python) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Python app. |
-| [Quickstart Rust](https://github.com/Azure-Samples/azure-redis-cache-rust-quickstart) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Rust app. |
-| [Quickstart Go](https://github.com/Azure-Samples/azure-redis-cache-go-quickstart) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Go app. |
+| Quickstart                                                                            | Platform | Description                                                                                                                                                                    |
+|---------------------------------------------------------------------------------------| -------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Quickstart ASP.NET for Windows](/quickstart/aspnet)                                  | Windows | Learn how to use an ASP.NET web application to connect to Azure Cache for Redis to store and retrieve data from the cache.                                                     |
+| [Quickstart ASP.NET Core](/quickstart/aspnet-core)                                    | Windows, Linux, macOS | Learn how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache.                                                |
+| [Quickstart C# .NET for Windows](/quickstart/dotnet)                                  | Windows | Learn how to incorporate Azure Cache for Redis into a C# .NET Framework console app using the StackExchange.Redis Redis client.                                                |
+| [Quickstart C# .NET Core](/quickstart/dotnet-core)                                    | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a C# .NET Core console app using the StackExchange.Redis Redis client.                                                     |
+| [Quickstart Java](/quickstart/java)                                                   | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Jedis Redis client.                                                                                   |
+| [Quickstart Java Redisson](/quickstart/java-redisson)                                 | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the Redisson Redis client.                                                                                |
+| [Quickstart Java Redisson JCache](/quickstart/java-redisson-jcache)                   | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Java app using the [JSR-107 JCache standard](https://jcp.org/en/jsr/detail?id=107) support in the Redisson Redis client. |
+| [Quickstart Node.js](/quickstart/nodejs)                                              | Node.js | Learn how to incorporate Azure Cache for Redis into a Node.js app.                                                                                                             |
+| [Quickstart Python](/quickstart/python)                                               | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Python app.                                                                                                              |
+| [Quickstart Rust](https://github.com/Azure-Samples/azure-redis-cache-rust-quickstart) | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Rust app.                                                                                                                |
+| [Quickstart Go](https://github.com/Azure-Samples/azure-redis-cache-go-quickstart)     | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a Go app.                                                                                                                  |
+| [Quickstart PHP](/quickstart/php)                                                     | Windows, Linux, macOS | Learn how to incorporate Azure Cache for Redis into a PHP app.                                                                                                                 |
 
 ### Samples
 
