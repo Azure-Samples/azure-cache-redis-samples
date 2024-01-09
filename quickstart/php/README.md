@@ -2,9 +2,9 @@
 page_type: sample
 languages:
 - php
-  name: 'Quickstart: Use Azure Cache for Redis in PHP'
-  description: Learn how to interact with Azure Cache for Redis in your PHP app.
-  products:
+name: 'Quickstart: Use Azure Cache for Redis in PHP'
+description: Learn how to interact with Azure Cache for Redis in your PHP app.
+products:
 - azure
 - azure-cache-redis
 ---
