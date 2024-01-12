@@ -16,7 +16,6 @@ products:
 - aspnet
 - aspnet-core
 - dotnet
-- dotnet-core
 - azure-cache-redis
 ---
 
