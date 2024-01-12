@@ -146,26 +146,23 @@ namespace ContosoTeamStats
                 ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
 
                 // Swap current connection with the new connection
-                ConnectionMultiplexer _oldConnection = Interlocked.Exchange(ref _connection, _newConnection);
+                ConnectionMultiplexer oldConnection = Interlocked.Exchange(ref _connection, _newConnection);
 
-                if (_oldConnection != null)
+                Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
+                IDatabase newDatabase = _connection.GetDatabase();
+                Interlocked.Exchange(ref _database, newDatabase);
+
+                if (oldConnection != null)
                 {
                     try
                     {
-                        await _oldConnection.CloseAsync();
+                        await oldConnection.CloseAsync();
                     }
                     catch
                     {
                         // Ignore any errors from the old connection
                     }
                 }
-
-                // Dispose old connection
-                Interlocked.Exchange(ref _oldConnection, null);
-
-                Interlocked.Exchange(ref _lastReconnectTicks, utcNow.UtcTicks);
-                IDatabase newDatabase = _connection.GetDatabase();
-                Interlocked.Exchange(ref _database, newDatabase);
             }
             finally
             {
