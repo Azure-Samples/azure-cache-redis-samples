@@ -15,27 +15,28 @@ This sample show you how to incorporate Azure Cache for Redis into a Java app us
 ## Prerequisites
 
 - Azure subscription - [create one for free](https://azure.microsoft.com/free/)
-- Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
 - [Apache Maven](https://maven.apache.org/download.cgi)
+- [Use Microsoft Entra ID for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+
 
 ## Set up the working environment
 
-Depending on your operating system, add environment variables for your cache's **Host name** and **Primary access key**. Open a command prompt, or a terminal window, and set up the following values:
+Depending on your operating system, add environment variables for your cache's **Host name** and **USERNAME**. Open a command prompt, or a terminal window, and set up the following values:
 
 ```CMD
 set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-set REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
+set USERNAME=<USERNAME>
 ```
 
 ```bash
 export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-export REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
+export USERNAME=<USERNAME>
 ```
 
 Replace the placeholders with the following values:
 
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
-- `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key, obtained from the *Access keys* section of your Azure Cache for Redis resource in the Azure portal.
+- `<USERNAME>`: Object ID of your managed identity or service principal.
 
 ## Run the sample
 
