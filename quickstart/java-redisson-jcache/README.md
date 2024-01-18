@@ -10,7 +10,7 @@ products:
 ---
 # Quickstart: Use Azure Cache for Redis in Java with Redisson Redis client and JCache
 
-In this quickstart, you incorporate Azure Cache for Redis into a Java app using the [Redisson](https://redisson.org/) Redis client and JCP stardand JCache API to have access to a secure, dedicated cache that is accessible from any application within Azure.
+In this quickstart, you incorporate Azure Cache for Redis into a Java app using the [Redisson](https://redisson.org/) Redis client and JCP standard JCache API to have access to a secure, dedicated cache that is accessible from any application within Azure.
 
 ## Prerequisites
 
