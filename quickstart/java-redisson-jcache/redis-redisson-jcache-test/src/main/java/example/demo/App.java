@@ -53,6 +53,9 @@ public class App {
         if ("MicrosoftEntraID".equals(System.getenv("AUTH_TYPE"))) {
             System.out.println("Auth with Microsoft Entra ID");
             return getConfigAuthWithAAD();
+        } else if ("RedisKey".equals(System.getenv("AUTH_TYPE"))) {
+            System.out.println("Auth with Redis key");
+            return getConfigAuthWithAAD();
         }
         System.out.println("Auth with Redis key");
         return getConfigAuthWithKey();
