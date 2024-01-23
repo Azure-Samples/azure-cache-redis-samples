@@ -77,3 +77,7 @@ Execute the following Maven command to build and run the app:
 ```CMD
 mvn compile exec:java -D exec.mainClass=example.demo.App
 ```
+
+## Next Steps
+
+It is also possible to use `DefaultAzureCredential` to provide the identity to be used with the Redis connection. For more details, see [Azure authentication with Java and Azure Identity](https://learn.microsoft.com/en-us/azure/developer/java/sdk/identity).
