@@ -51,8 +51,10 @@ public class App {
 
     private static Config getConfig(){
         if ("MicrosoftEntraID".equals(System.getenv("AUTH_TYPE"))) {
+            System.out.println("Auth with Microsoft Entra ID");
             return getConfigAuthWithAAD();
         }
+        System.out.println("Auth with Redis key");
         return getConfigAuthWithKey();
     }
 
@@ -77,7 +79,7 @@ public class App {
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer()
             .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")))
-            .setUsername(System.getenv("USERNAME")) // (Required) Username is Object ID of your managed identity or service principal
+            .setUsername(System.getenv("USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
             .setPassword(token); // Microsoft Entra access token as password is required.
         return redissonconfig;
     }
