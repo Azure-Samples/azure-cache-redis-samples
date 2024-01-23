@@ -50,7 +50,7 @@ public class App {
     }
 
     private static Config getConfig(){
-        if (System.getenv("AUTH_TYPE").equals("MicrosoftEntraID")) {
+        if ("MicrosoftEntraID".equals(System.getenv("AUTH_TYPE"))) {
             return getConfigAuthWithAAD();
         }
         return getConfigAuthWithKey();
