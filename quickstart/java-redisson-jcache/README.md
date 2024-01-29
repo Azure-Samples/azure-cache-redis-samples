@@ -21,7 +21,7 @@ In this quickstart, you incorporate Azure Cache for Redis into a Java app using 
 
 ## Set up the working environment
 
-### Option01: Authentication with Redis Key
+### Option 1: Authentication with an Access Key
 
 Depending on your operating system, add environment variables for your cache's **Host name** and **Primary access key**. Open a command prompt, or a terminal window, and set up the following values:
 
