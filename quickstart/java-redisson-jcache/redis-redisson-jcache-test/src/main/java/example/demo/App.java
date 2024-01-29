@@ -85,7 +85,7 @@ public class App {
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer()
             .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")))
-            .setUsername(System.getenv("USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
+            .setUsername(System.getenv("REDIS_USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
             .setPassword(token); // Microsoft Entra access token as password is required.
         return redissonconfig;
     }
