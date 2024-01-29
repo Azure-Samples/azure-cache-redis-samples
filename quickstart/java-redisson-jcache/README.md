@@ -42,7 +42,7 @@ Replace the placeholders with the following values:
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
 - `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key, obtained from the *Access keys* section of your Azure Cache for Redis resource in the Azure portal.
 
-### Option02: Authentication with Microsoft Entra ID
+### Option 2: Authentication with Microsoft Entra ID
 
 Depending on your operating system, add environment variables for your cache's **Host name** and **USER_NAME**. Open a command prompt, or a terminal window, and set up the following values:
 
