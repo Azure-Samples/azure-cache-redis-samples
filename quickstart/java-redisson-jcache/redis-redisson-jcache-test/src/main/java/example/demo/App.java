@@ -50,21 +50,24 @@ public class App {
     }
 
     private static Config getConfig(){
-        if ("MicrosoftEntraID".equals(System.getenv("AUTH_TYPE"))) {
-            System.out.println("Auth with Microsoft Entra ID");
-            return getConfigAuthWithAAD();
-        } else if ("RedisKey".equals(System.getenv("AUTH_TYPE"))) {
+        String redisAccessKey = System.getenv("REDIS_ACCESS_KEY");
+        String redisUserName = System.getenv("REDIS_USER_NAME");
+
+        if (redisAccessKey != null && !redisAccessKey.isEmpty()) {
             System.out.println("Auth with Redis key");
             return getConfigAuthWithKey();
+        } else if (redisUserName != null && !redisUserName.isEmpty()) {
+            System.out.println("Auth with Microsoft Entra ID");
+            return getConfigAuthWithAAD();
+        } else {
+            throw new RuntimeException("Neither REDIS_ACCESS_KEY nor REDIS_USER_NAME is defined");
         }
-        System.out.println("Auth with Redis key");
-        return getConfigAuthWithKey();
     }
 
     private static Config getConfigAuthWithKey() {
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
         Config redissonconfig = new Config();
-        redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_CACHE_KEY"))
+        redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_ACCESS_KEY"))
             .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")));
         return redissonconfig;
     }

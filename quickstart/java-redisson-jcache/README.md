@@ -27,14 +27,12 @@ Depending on your operating system, add environment variables for your cache's *
 
 ```CMD
 set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-set REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
-set AUTH_TYPE=RedisKey
+set REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 ```bash
 export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-export REDIS_CACHE_KEY=<YOUR_PRIMARY_ACCESS_KEY>
-export AUTH_TYPE=RedisKey
+export REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 Replace the placeholders with the following values:
@@ -44,26 +42,28 @@ Replace the placeholders with the following values:
 
 ### Option 2: Authentication with Microsoft Entra ID
 
+- [Use Microsoft Entra ID for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+
 Depending on your operating system, add environment variables for your cache's **Host name** and **USER_NAME**. Open a command prompt, or a terminal window, and set up the following values:
 
 ```CMD
 set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-set USER_NAME=<USER_NAME>
-set AUTH_TYPE=MicrosoftEntraID
+set REDIS_USER_NAME=<REDIS_USER_NAME>
 ```
 
 ```bash
 export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
-export USER_NAME=<USER_NAME>
-export AUTH_TYPE=MicrosoftEntraID
+export REDIS_USER_NAME=<REDIS_USER_NAME>
 ```
 
 Replace the placeholders with the following values:
 
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
-- `<USER_NAME>`: Object ID of your managed identity or service principal.
-  - You can get the **USER_NAME** by following 1-4 steps in the image: 
-    - ![user_name.png](./media/user_name.png)
+- `<REDIS_USER_NAME>`: Object ID of your managed identity or service principal.
+  - You can find this value in the "(PREVIEW) Data Access Configuration" view on your cache resource in the Azure Portal. It appears on the "Redis Users" tab, in the "Username" column.
+
+
+It is also possible to use `DefaultAzureCredential` to provide the identity to be used with the Redis connection. For more details, see [Azure authentication with Java and Azure Identity](https://learn.microsoft.com/en-us/azure/developer/java/sdk/identity).
 
 
 ## Run the sample
@@ -77,7 +77,3 @@ Execute the following Maven command to build and run the app:
 ```CMD
 mvn compile exec:java -D exec.mainClass=example.demo.App
 ```
-
-## Next Steps
-
-It is also possible to use `DefaultAzureCredential` to provide the identity to be used with the Redis connection. For more details, see [Azure authentication with Java and Azure Identity](https://learn.microsoft.com/en-us/azure/developer/java/sdk/identity).
