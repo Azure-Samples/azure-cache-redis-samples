@@ -23,36 +23,36 @@ In this quickstart, you incorporate Azure Cache for Redis into a Java app using 
 
 ### Option 1: Authentication with an Access Key
 
-Depending on your operating system, add environment variables for your cache's **Host name** and **Primary access key**. Open a command prompt, or a terminal window, and set up the following values:
+Depending on your operating system, add environment variables for your cache's **Host name** and **Primary access key**. Open a command prompt, or a terminal window, and set up the following values. Ensure the value for `REDIS_CACHE_HOSTNAME` is the fully qualified domain name. This value typically ends with `.redis.cache.windows.net`.
 
 ```CMD
-set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 set REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 ```bash
-export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 export REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
 ```
 
 Replace the placeholders with the following values:
 
-- `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
-- `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key, obtained from the *Access keys* section of your Azure Cache for Redis resource in the Azure portal.
+- `<YOUR_HOST_NAME>`: The DNS host name. In the *Settings* section of the Azure Cache for Redis resource in the Azure portal, select *Properties*. Select the copy icon to the right of the *Host name* field.
+- `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key. In the *Settings* section of the Azure Cache for Redis resource in the Azure portal, select *Authentication*. Select the copy icon to the right of the *Primary* field.
 
 ### Option 2: Authentication with Microsoft Entra ID
 
 - [Use Microsoft Entra ID for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 
-Depending on your operating system, add environment variables for your cache's **Host name** and **USER_NAME**. Open a command prompt, or a terminal window, and set up the following values:
+Depending on your operating system, add environment variables for your cache's **Host name** and **Username**. Open a command prompt, or a terminal window, and set up the following values:
 
 ```CMD
-set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 set REDIS_USER_NAME=<REDIS_USER_NAME>
 ```
 
 ```bash
-export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
+export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 export REDIS_USER_NAME=<REDIS_USER_NAME>
 ```
 
