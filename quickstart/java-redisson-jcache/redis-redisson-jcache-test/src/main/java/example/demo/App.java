@@ -1,5 +1,8 @@
 package example.demo;
 
+import com.azure.core.credential.TokenRequestContext;
+import com.azure.identity.DefaultAzureCredential;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -17,14 +20,10 @@ import java.time.LocalDateTime;
  * Redis test
  *
  */
-public class App
-{
-    public static void main(String[] args)
-    {
-        // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
-        Config redissonconfig = new Config();
-        redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_CACHE_KEY"))
-            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")));
+public class App {
+    public static void main(String[] args) {
+
+        Config redissonconfig = getConfig();
 
         RedissonClient redissonClient = Redisson.create(redissonconfig);
 
@@ -49,4 +48,46 @@ public class App
 
         redissonClient.shutdown();
     }
+
+    private static Config getConfig(){
+        String redisAccessKey = System.getenv("REDIS_ACCESS_KEY");
+        String redisUserName = System.getenv("REDIS_USER_NAME");
+
+        if (redisAccessKey != null && !redisAccessKey.isEmpty()) {
+            System.out.println("Auth with Redis key");
+            return getConfigAuthWithKey();
+        } else if (redisUserName != null && !redisUserName.isEmpty()) {
+            System.out.println("Auth with Microsoft Entra ID");
+            return getConfigAuthWithAAD();
+        } else {
+            throw new RuntimeException("Neither REDIS_ACCESS_KEY nor REDIS_USER_NAME is defined");
+        }
+    }
+
+    private static Config getConfigAuthWithKey() {
+        // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
+        Config redissonconfig = new Config();
+        redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_ACCESS_KEY"))
+            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")));
+        return redissonconfig;
+    }
+
+    private static Config getConfigAuthWithAAD() {
+        //Construct a Token Credential from Identity library, e.g. DefaultAzureCredential / ClientSecretCredential / Client CertificateCredential / ManagedIdentityCredential etc.
+        DefaultAzureCredential defaultAzureCredential = new DefaultAzureCredentialBuilder().build();
+
+        // Fetch a Microsoft Entra token to be used for authentication.
+        String token = defaultAzureCredential
+            .getToken(new TokenRequestContext()
+                .addScopes("acca5fbb-b7e4-4009-81f1-37e38fd66d78/.default")).block().getToken();
+
+        // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
+        Config redissonconfig = new Config();
+        redissonconfig.useSingleServer()
+            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")))
+            .setUsername(System.getenv("REDIS_USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
+            .setPassword(token); // Microsoft Entra access token as password is required.
+        return redissonconfig;
+    }
+
 }
