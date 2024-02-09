@@ -54,8 +54,8 @@ public class App {
         String redisUserName = System.getenv("REDIS_USER_NAME");
 
         if (redisAccessKey != null && !redisAccessKey.isEmpty()) {
-            System.out.println("Auth with Redis key");
-            return getConfigAuthWithKey();
+            System.out.println("Auth with Redis access key");
+            return getConfigAuthWithAccessKey();
         } else if (redisUserName != null && !redisUserName.isEmpty()) {
             System.out.println("Auth with Microsoft Entra ID");
             return getConfigAuthWithAAD();
@@ -64,11 +64,11 @@ public class App {
         }
     }
 
-    private static Config getConfigAuthWithKey() {
+    private static Config getConfigAuthWithAccessKey() {
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_ACCESS_KEY"))
-            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")));
+            .setAddress(String.format("rediss://%s", System.getenv("REDIS_HOST_NAME")));
         return redissonconfig;
     }
 
@@ -79,14 +79,14 @@ public class App {
         // Fetch a Microsoft Entra token to be used for authentication.
         String token = defaultAzureCredential
             .getToken(new TokenRequestContext()
-                .addScopes("acca5fbb-b7e4-4009-81f1-37e38fd66d78/.default")).block().getToken();
+                .addScopes("https://redis.azure.com/.default")).block().getToken();
 
-        // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
+        // Connect to the Azure Cache for Redis over the TLS/SSL port using the token
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer()
-            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")))
+            .setAddress(String.format("rediss://%s", System.getenv("REDIS_HOST_NAME")))
             .setUsername(System.getenv("REDIS_USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
-            .setPassword(token); // Microsoft Entra access token as password is required.
+            .setPassword(token); // Microsoft Entra token as password is required.
         return redissonconfig;
     }
 
