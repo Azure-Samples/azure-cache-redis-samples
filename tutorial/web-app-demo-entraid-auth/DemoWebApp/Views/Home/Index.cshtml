@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div class="text-center">
+    <button onclick="UpdateTimeStamp()">Update timestamp</button>
+    <input type="text" id="timestampTextBox" style="min-width:30%" />
+</div>
+
+<script>
+    function UpdateTimeStamp() {
+        $.ajax({
+            url: '@Url.Action("UpdateTimeStamp", "Home")',
+            type: 'GET',
+            success: function (data) {
+                $('#timestampTextBox').val(data);
+            }
+        });
+    }
+</script>
