@@ -1,7 +1,7 @@
 # .NET 8 Web Application with Redis Output Caching and Azure Open AI
 
 ## Overview
-This repository contains sample code for an AI image generation web application. It calls into Azure Open AI DallE to generate images based on user prompt. There are two features the sample highlights:
+This folder contains sample code for an AI image generation web application. It calls into Azure Open AI DallE to generate images based on user prompt. There are two features the sample highlights:
 * It allows responses from the /cached/ endpoint to be saved in Azure Cache for Redis through the [IOutputCache() abstraction](https://learn.microsoft.com/aspnet/core/performance/caching/output?preserve-view=true&view=aspnetcore-8.0#cache-storage). 
 * It uses semantic caching to cache responses from similar prompts using the [Redis OM for .NET](https://github.com/redis/redis-om-dotnet)
 
@@ -12,11 +12,17 @@ To experiment with the demo:
 
 Here are an example outputs:
 
-**Figure 1**: /cached/ endpoint caches web response rendered output
+**Figure 1**: /nocache/ endpoint returns a different picture upon each refresh
+
+![A purple robot](./images/nc_a-purple-robot.png)
+
+![A purple robot refreshed](./images/nc_a-purple-robot-refreshed.png)
+
+**Figure 2**: /cached/ endpoint caches web response rendered output
 
 ![Output Cache: a purple robot in the cloud](./images/oc_a-purple-robot-in-the-sky.png)
 
-**Figure 2**: /semanticcache/ endpoint for "a french garden in monet style"
+**Figure 3**: /semanticcache/ endpoint for "a french garden in monet style"
 
 ![semantic cache: a french garden in monet style ](./images/sc_a-french-garden-in-monet-style_resized.png)
 
@@ -31,15 +37,22 @@ Prerequisites:
 - .NET 8 or above. [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Docker. [Get docker](https://docs.docker.com/get-docker/)
 - Azure Developer CLI. [Install](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd?tabs=winget-windows%2Cbrew-mac%2Cscript-linux&pivots=os-windows)
+- Onboard your subscription(s) to Azure Open AI service. [Azure OpenAI Service](https://azure.microsoft.com/products/ai-services/openai-service/?ef_id=_k_3f5cdbf9b7621328b33fbdbb24786555_k_&OCID=AIDcmm5edswduu_SEM__k_3f5cdbf9b7621328b33fbdbb24786555_k_&msclkid=3f5cdbf9b7621328b33fbdbb24786555)
 
 1. Open a command prompt
 2. Change directory to the project folder where azure.yaml file is located
-4. Make sure docker is running
-5. Run:
+3. Make sure docker is running. Use the following command to check:
+    ```
+    docker version
+    echo $?
+    ```
+    The expected return value is True if running, False if not running.
+4. Run:
     ```
     azd up
     ```
-6. Follow command prompt to enter environment name and select subscription
+5. Follow command prompt to enter environment name and select subscription
+6. Since the Dall-E model is available in limited regions, select "East US" to ensure the demo works.
 7. This will create all the resources needed to run the sample:
 - Azure Container App instance and environment
 - Azure Container Registry

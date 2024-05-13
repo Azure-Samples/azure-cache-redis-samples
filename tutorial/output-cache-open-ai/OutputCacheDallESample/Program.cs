@@ -15,33 +15,28 @@ builder.Services.AddOutputCache(options => {
 
 var app = builder.Build();
 
-app.MapGet("/", async (HttpContext context) => { await context.Response.WriteAsync("<h1>Welcome to OpenAI Art Gallery</h1>"); });
+app.MapGet("/", async (HttpContext context) => 
+           await context.Response.WriteAsync("<h1>Welcome to OpenAI Art Gallery</h1>"));
 
-app.MapGet("/nocache/{prompt}", async (HttpContext context, string prompt, IConfiguration config) => 
-    { 
-        await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config); 
-    });
+app.MapGet("/nocache/{prompt}", async (HttpContext context, string prompt, IConfiguration config) =>    
+           await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config));
 
 app.MapGet("/semanticcache/{prompt}", async (HttpContext context, string prompt, IConfiguration config) => 
-    { 
-        await GenerateImageSC.GenerateImageSCAsync(context, prompt, config);
-    });
+           await GenerateImageSC.GenerateImageSCAsync(context, prompt, config));
 
 app.MapGet("/cached/{prompt}", async (HttpContext context, string prompt, IConfiguration config) => 
-    { await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config); 
-    }).CacheOutput();
+           await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config))
+                                 .CacheOutput();
 
 app.MapGet("/cachedByAnnotation/{prompt}", [OutputCache(Duration = 15)] async (HttpContext context, string prompt, IConfiguration config) => 
-    { await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config); 
-    });
+           await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config));
 
 app.MapGet("/cached/Gardens/{prompt}", async (HttpContext context, string prompt, IConfiguration config) => 
-    { await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config); 
-    }).CacheOutput(x => x.Tag("Gardens"));
+          await GenerateImageSDK.GenerateImageSDKAsync(context, prompt, config))
+                                .CacheOutput(x => x.Tag("Gardens"));
 
 app.MapPost("/purge/{tag}", async (IOutputCacheStore cache, string tag) =>
-    {await cache.EvictByTagAsync(tag, default);
-    });
+    await cache.EvictByTagAsync(tag, default));
 
 app.UseOutputCache();
 app.Run();
