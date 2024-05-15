@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: OutputCacheDallESample
+metadata:
+    template: azd-init@1.4.2
+services:
+    OutputCacheDallESample:
+        project: OutputCacheDallESample
+        host: containerapp
+        language: dotnet
+        docker:
+            path: Dockerfile
