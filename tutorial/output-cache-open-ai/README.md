@@ -6,9 +6,9 @@ This folder contains sample code for an AI image generation web application. It 
 * It uses semantic caching to cache responses from similar prompts using the [Redis OM for .NET](https://github.com/redis/redis-om-dotnet)
 
 To experiment with the demo:
-1. call the /nocache/ endpoint with your command prompt. Refresh the browser. Observe that refresh takes a noticeable delay and a new picture will be generated.
-2. call the /cached/ endpoint with your command prompt. Refresh the browser. Observe that the output picture does not change and refresh finishes instantly. 
-3. call the /semanticcache/ endpoint with your command prompt. Enter two similar prompts such as "a french garden in monet style" and "a monet style french garden". Observe that the outputs are cached. 
+1. call the /nocache/ endpoint in the URL in your browser. Refresh the browser. Observe that refresh takes a noticeable delay and a new picture will be generated.
+2. call the /cached/ endpoint in the URL in your browser. Refresh the browser. Observe that the output picture does not change and refresh finishes instantly. 
+3. call the /semanticcache/ endpoint in the URL in your browser. Enter two similar prompts such as "a french garden in monet style" and "a monet style french garden". Observe that the outputs are cached. 
 
 Here are an example outputs:
 
@@ -43,10 +43,20 @@ Prerequisites:
 2. Change directory to the project folder where azure.yaml file is located
 3. Make sure docker is running. Use the following command to check:
     ```
-    docker version
-    echo $?
+    docker ps
     ```
-    The expected return value is True if running, False if not running.
+    If docker daemon is not running, the output message will show that "docker process is not running" with additional information. For example:
+    ```
+    C:\redis\samples\tutorial\output-cache-open-ai>docker ps
+    request returned Internal Server Error for API route and version
+    http://%2F%2F.%2Fpipe%2Fdocker_engine/v1.45/containers/json
+    , check if the server supports the requested API version
+    ```
+    If the docker process is running, it will show a table on the active containers. For example:
+    ```
+    C:\redis\samples\tutorial\output-cache-open-ai>docker ps
+    CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+    ```
 4. Run:
     ```
     azd up

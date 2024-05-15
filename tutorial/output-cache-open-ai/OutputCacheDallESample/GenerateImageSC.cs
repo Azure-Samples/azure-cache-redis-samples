@@ -2,7 +2,6 @@
 using Azure;
 using Redis.OM;
 using Redis.OM.Vectorizers;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace OutputCacheDallESample
 {
@@ -60,10 +59,7 @@ namespace OutputCacheDallESample
                     $"<img src=\"{imageURL}\" alt=\"AI Generated Picture {_prompt}\" width=\"460\" height=\"345\">" +
                     " </body> </html>");
                 }
-            }
-
-
-            
+            }            
         }
     }
 }
