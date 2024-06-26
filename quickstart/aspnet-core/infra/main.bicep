@@ -13,10 +13,6 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-@minLength(1)
-@description('Principal ID of the logged in user')
-param principalId string
-
 // Optional parameters to override the default azd resource naming conventions.
 // Add the following to main.parameters.json to provide values:
 // "resourceGroupName": {
