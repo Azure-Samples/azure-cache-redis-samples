@@ -14,7 +14,6 @@ var cachePrivateEndpointName = 'cache-privateEndpoint'
 //added for Redis Cache
 var cachePvtEndpointDnsGroupName = 'cacheDnsGroup'
 var abbrs = loadJsonContent('./abbreviations.json')
-var redisAccessPolicyName = 'redisDataOwner'
 var redisAccessPolicyAssignment = 'redisWebAppAssignment'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
@@ -231,19 +230,17 @@ resource redisCache 'Microsoft.Cache/redis@2024-03-01' = {
   location:location
   name:cacheServerName
   properties:{
+    redisConfiguration:{
+      'aad-enabled':'true'
+    }
     sku: {
       capacity:1
       family:'C'
       name:'Standard'
     }
   }
-}
-
-resource redisAccessPolicy 'Microsoft.Cache/redis/accessPolicies@2024-03-01' = {
-  name: redisAccessPolicyName
-  parent: redisCache
-  properties:{
-    permissions:'+@all allkeys'
+  identity:{
+    type:'SystemAssigned'
   }
 }
 
@@ -251,7 +248,7 @@ resource redisAccessPolicyAssignmentName 'Microsoft.Cache/redis/accessPolicyAssi
   name: redisAccessPolicyAssignment
   parent: redisCache
   properties: {
-    accessPolicyName: redisAccessPolicy.name
+    accessPolicyName: 'Data Owner'
     objectId: web.identity.principalId
     objectIdAlias: 'webapp'
   }
