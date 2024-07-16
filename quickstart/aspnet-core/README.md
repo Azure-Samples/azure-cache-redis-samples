@@ -11,7 +11,7 @@ products:
 ---
 # Quickstart: Use Azure Cache for Redis with an ASP.NET Core web app
 
-This sample shows you how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. Microsoft Entra ID is used for connecting the web application to the Azure Cache for Redis. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-web-app-aspnet-core-howto) on the documentation site for details, including best practices and how to create the sample code from scratch.
+This sample shows you how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. Microsoft Entra ID is used to authenticate the connection to the Redis cache in Azure. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-web-app-aspnet-core-howto) on the documentation site for details, including best practices and how to create the sample code from scratch.
 
 ## Prerequisites
 

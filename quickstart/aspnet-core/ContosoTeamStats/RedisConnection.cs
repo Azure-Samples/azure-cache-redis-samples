@@ -32,23 +32,10 @@ namespace ContosoTeamStats
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
 
-        //private RedisConnection(string connectionString)
-        //{
-        //    _connectionString = connectionString;
-        //}
-
         private RedisConnection(string redisHostName)
         {
             _redisHostName = redisHostName;
         }
-
-        //public static async Task<RedisConnection> InitializeAsync(string connectionString)
-        //{
-        //    var redisConnection = new RedisConnection(connectionString);
-        //    await redisConnection.ForceReconnectAsync(initializing: true);
-
-        //    return redisConnection;
-        //}
 
         public static async Task<RedisConnection> InitializeAsync(string redisHostName)
         {
@@ -159,9 +146,8 @@ namespace ContosoTeamStats
                 _previousErrorTime = DateTimeOffset.MinValue;
 
                 // Create a new connection
-                //ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
 
-                var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithSystemAssignedManagedIdentityAsync();
+                var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
                 configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
 
                 ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(configurationOptions);

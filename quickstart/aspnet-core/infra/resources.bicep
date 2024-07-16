@@ -190,40 +190,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   }
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03-01-preview' = {
-  name: '${prefix}-workspace'
-  location: location
-  tags: tags
-  properties: any({
-    retentionInDays: 30
-    features: {
-      searchVersion: 1
-    }
-    sku: {
-      name: 'PerGB2018'
-    }
-  })
-}
-
-module applicationInsightsResources './core/monitor/applicationinsights.bicep' = {
-  name: 'applicationinsights-resources'
-  params: {
-    name: '${prefix}-appinsights'
-    dashboardName:'${prefix}-dashboard'
-    location: location
-    tags: tags
-    logAnalyticsWorkspaceId: logAnalyticsWorkspace.id
-  }
-  
-}
-
-module keyvault 'core/security/keyvault.bicep' = {
-  name:'${abbrs.keyVaultVaults}${resourceToken}'
-  params:{
-    location: location
-    name:'${abbrs.keyVaultVaults}${resourceToken}'
-  }
-}
 
 //added for Redis Cache
 resource redisCache 'Microsoft.Cache/redis@2024-03-01' = {
@@ -256,4 +222,4 @@ resource redisAccessPolicyAssignmentName 'Microsoft.Cache/redis/accessPolicyAssi
 
 
 output WEB_URI string = 'https://${web.properties.defaultHostName}'
-output APPLICATIONINSIGHTS_CONNECTION_STRING string = applicationInsightsResources.outputs.connectionString
+
