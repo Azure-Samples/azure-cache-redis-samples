@@ -18,26 +18,46 @@ This sample shows you how to incorporate Azure Cache for Redis into a C# .NET Co
 - Azure subscription - [create one for free](https://azure.microsoft.com/free/)
 - Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
 - [.NET Core SDK](https://dotnet.microsoft.com/download)
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ## Run the sample
 
 [Download the sample code to your development PC.](/README.md#get-the-samples)
 
-In your command window, change directories to the folder containing this sample.
+### 1. Set up local credential for using Entra ID
+This sample uses Microsoft Entra ID for connecting to an Azure Cache for Redis instance.
+The following line of code in *ContosoTeamStats/RedisConnection.cs* obtains the default credential from your local machine or an Azure resource as the identity for authentication and authorization.
 
-Execute the following command to restore the packages:
+```csharp
+var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+```
+
+One of the common way for signing into to your Azure account is to use the Azure CLI. Bring up the Command Prompt. Run
+
+```cli
+az login
+```
+
+For other methods of sign into Azure with Azure CLI, such as using a Service Principal, see [Sign into Azure with Azure CLI](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
+
+### 2. Add the permissions to allow the Entra ID to connect to the Azure Cache for Redis instance
+Follow instruction at [Use Microsoft Entra ID for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+
+### 3. In your command window, change directories to the folder containing this sample.
+
+### 4. Execute the following command to restore the packages:
 
 ```
 dotnet restore
 ```
 
-Execute the following command to store a new secret named *CacheConnection*, after replacing the placeholders (including angle brackets) for your cache name and primary access key:
+### 5. Execute the following command to store a new secret named *CacheConnection*, after replacing the placeholders (including angle brackets) for your cache name and primary access key:
 
 ```
-dotnet user-secrets set CacheConnection "<cache name>.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password=<primary-access-key>"
+dotnet user-secrets set RedisHostName <Your_Redis_Host_Name. i.e. myrediscache.redis.cache.windows.net>
 ```
 
-Execute the following command in your command window to build the app:
+### 6. Execute the following command in your command window to build the app:
 
 ```
 dotnet build
