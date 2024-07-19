@@ -27,7 +27,6 @@ namespace ContosoTeamStats
         private const int RetryMaxAttempts = 5;
 
         private SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
-        //private readonly string _connectionString;
         private readonly string _redisHostName;
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
