@@ -18,25 +18,23 @@ This sample shows you how to use an ASP.NET web application to connect to Azure 
 
 - Azure subscription - [create one for free](https://azure.microsoft.com/free/dotnet)
 - Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
-- [Visual Studio](https://www.visualstudio.com/downloads/) with the **ASP.NET and web development** and **Azure development** workloads.
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Visual Studio 2019](https://www.visualstudio.com/downloads/) with the **ASP.NET and web development** and **Azure development** workloads.
 
 ## Set up the working environment
 
-This sample uses Microsoft Entra ID for connecting to an Azure Cache for Redis instance.
-The following line of code in *ContosoTeamStats/RedisConnection.cs* obtains the default credential from your local machine or an Azure resource as the identity for authentication and authorization.
+Create a file on your computer named *CacheSecrets.config* and place it in a location where it won't be checked in with the source code of your sample application. For this quickstart, the *CacheSecrets.config* file is located here, *C:\AppSecrets\CacheSecrets.config*.
 
-```csharp
-var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+Edit the *CacheSecrets.config* file and add the following contents:
+
+```xml
+<appSettings>
+    <add key="CacheConnection" value="<cache-name>.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password=<access-key>"/>
+</appSettings>
 ```
 
-One of the common way for signing into to your Azure account is to use the Azure CLI. Bring up the Command Prompt. Run
+Replace `<cache-name>` with your cache host name.
 
-```cli
-az login
-```
-
-For other methods of sign into Azure with Azure CLI, such as using a Service Principal, see [Sign into Azure with Azure CLI](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
+Replace `<access-key>` with the primary key for your cache.
 
 ## Run the sample locally
 
