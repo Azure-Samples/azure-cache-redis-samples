@@ -40,7 +40,10 @@ az login
 For other methods of sign into Azure with Azure CLI, such as using a Service Principal, see [Sign into Azure with Azure CLI](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
 
 ### 2. Point to an Azure Cache for Redis instance from local configuration
-Edit the *App.config* file and add the following contents:
+
+Create a file on your computer named *CacheSecrets.config* and place it in a location where it won't be checked in with the source code of your sample application. For this quickstart, the *CacheSecrets.config* file is located here, *C:\AppSecrets\CacheSecrets.config*.
+
+Edit the *CacheSecrets.config* file and add the following contents:
 
 ```xml
 <appSettings>
@@ -48,7 +51,9 @@ Edit the *App.config* file and add the following contents:
 </appSettings>
 ```
 
-Replace `<cache-name>` with your cache host name.
+### 3. Add the permissions to allow the Entra ID to connect to the Azure Cache for Redis instance
+Follow instruction at [Use Microsoft Entra ID for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
+
 
 ## Run the sample
 
