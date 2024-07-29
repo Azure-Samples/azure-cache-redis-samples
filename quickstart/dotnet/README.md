@@ -19,13 +19,13 @@ This sample shows you how to incorporate Azure Cache for Redis into a C# .NET Fr
 - Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
 - [Visual Studio 2019](https://www.visualstudio.com/downloads/)
 - [.NET Framework 4 or higher](https://www.microsoft.com/net/download/dotnet-framework-runtime), which is required by the StackExchange.Redis client.
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
 ## Set up the working environment
 
 ### 1. Set up local credential for using Entra ID
-This sample uses Microsoft Entra ID for connecting to an Azure Cache for Redis instance.
-The following line of code in *ContosoTeamStats/RedisConnection.cs* obtains the default credential from your local machine or an Azure resource as the identity for authentication and authorization.
+This sample uses Microsoft Entra ID to authenticate connections to an Azure Cache for Redis resource.
+The following line of code in ```Redistest/RedisConnection.cs``` obtains the [default credential](https://learn.microsoft.com/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet) from your local machine or an Azure resource as the identity for authentication and authorization.
 
 ```csharp
 var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
@@ -41,13 +41,11 @@ For other methods of sign into Azure with Azure CLI, such as using a Service Pri
 
 ### 2. Point to an Azure Cache for Redis instance from local configuration
 
-Create a file on your computer named *CacheSecrets.config* and place it in a location where it won't be checked in with the source code of your sample application. For this quickstart, the *CacheSecrets.config* file is located here, *C:\AppSecrets\CacheSecrets.config*.
-
-Edit the *CacheSecrets.config* file and add the following contents:
+Edit the *App.config* file and add the following contents:
 
 ```xml
 <appSettings>
-    <add key="RedisCacheName" value="<cache-name>.redis.cache.windows.net"/>
+    <add key="RedisHostName" value="<cache-name>.redis.cache.windows.net"/>
 </appSettings>
 ```
 
