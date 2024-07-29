@@ -1,4 +1,6 @@
-﻿using StackExchange.Redis;
+﻿using Azure.Identity;
+using Microsoft.Azure.StackExchangeRedis;
+using StackExchange.Redis;
 using System;
 using System.Net.Sockets;
 using System.Threading;
@@ -25,18 +27,18 @@ namespace ContosoTeamStats
         private const int RetryMaxAttempts = 5;
 
         private SemaphoreSlim _reconnectSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
-        private readonly string _connectionString;
+        private readonly string _redisHostName;
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
 
-        private RedisConnection(string connectionString)
+        private RedisConnection(string redisHostName)
         {
-            _connectionString = connectionString;
+            _redisHostName = redisHostName;
         }
 
-        public static async Task<RedisConnection> InitializeAsync(string connectionString)
+        public static async Task<RedisConnection> InitializeAsync(string redisHostName)
         {
-            var redisConnection = new RedisConnection(connectionString);
+            var redisConnection = new RedisConnection(redisHostName);
             await redisConnection.ForceReconnectAsync(initializing: true);
 
             return redisConnection;
@@ -143,7 +145,11 @@ namespace ContosoTeamStats
                 _previousErrorTime = DateTimeOffset.MinValue;
 
                 // Create a new connection
-                ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(_connectionString);
+
+                var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+                configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
+
+                ConnectionMultiplexer _newConnection = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
 
                 // Swap current connection with the new connection
                 ConnectionMultiplexer oldConnection = Interlocked.Exchange(ref _connection, _newConnection);
