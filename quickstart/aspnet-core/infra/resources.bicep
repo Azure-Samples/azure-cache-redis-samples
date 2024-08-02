@@ -4,16 +4,12 @@ param resourceToken string
 param tags object
 
 var prefix = '${name}-${resourceToken}'
-//added for Redis Cache
 var cacheServerName = '${prefix}-redisCache'
 var webappSubnetName = 'webapp-subnet'
-//added for Redis Cache
 var cacheSubnetName = 'cache-subnet'
-//added for Redis Cache
 var cachePrivateEndpointName = 'cache-privateEndpoint'
-//added for Redis Cache
 var cachePvtEndpointDnsGroupName = 'cacheDnsGroup'
-var abbrs = loadJsonContent('./abbreviations.json')
+
 var redisAccessPolicyAssignment = 'redisWebAppAssignment'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
@@ -52,13 +48,11 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   resource webappSubnet 'subnets' existing = {
     name: webappSubnetName
   }
-  //added for Redis Cache
   resource cacheSubnet 'subnets' existing = {
     name: cacheSubnetName
   }
 }
 
-// added for Redis Cache
 resource privateDnsZoneCache 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   name: 'privatelink.redis.cache.windows.net'
   location: 'global'
@@ -68,7 +62,6 @@ resource privateDnsZoneCache 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   ]
 }
 
- //added for Redis Cache
 resource privateDnsZoneLinkCache 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
  parent: privateDnsZoneCache
  name: 'privatelink.redis.cache.windows.net-applink'
@@ -80,7 +73,6 @@ resource privateDnsZoneLinkCache 'Microsoft.Network/privateDnsZones/virtualNetwo
    }
  }
 }
-
 
 resource cachePrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   name: cachePrivateEndpointName
@@ -136,7 +128,6 @@ resource web 'Microsoft.Web/sites@2022-03-01' = {
   resource appSettings 'config' = {
     name: 'appsettings'
     properties: {
-      //"ENABLE_ORYX_BUILD" : "false", "SCM_DO_BUILD_DURING_DEPLOYMENT" : "false",
       SCM_DO_BUILD_DURING_DEPLOYMENT: 'false'
       ENABLE_ORYX_BUILD: 'false'
       RedisHostName: redisCache.properties.hostName
@@ -190,8 +181,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   }
 }
 
-
-//added for Redis Cache
 resource redisCache 'Microsoft.Cache/redis@2024-03-01' = {
   location:location
   name:cacheServerName
@@ -219,7 +208,6 @@ resource redisAccessPolicyAssignmentName 'Microsoft.Cache/redis/accessPolicyAssi
     objectIdAlias: 'webapp'
   }
 }
-
 
 output WEB_URI string = 'https://${web.properties.defaultHostName}'
 
