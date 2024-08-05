@@ -19,17 +19,12 @@ This sample shows you how to use an ASP.NET web application to connect to Azure 
 - Azure subscription - [create one for free](https://azure.microsoft.com/free/dotnet)
 - Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
 - [Visual Studio](https://www.visualstudio.com/downloads/) with the **ASP.NET and web development** and **Azure development** workloads.
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
 ## Set up the working environment
 
 ### 1. Set up local credential for using Entra ID
 This sample uses Microsoft Entra ID for connecting to an Azure Cache for Redis instance.
-The following line of code in *ContosoTeamStats/RedisConnection.cs* obtains the default credential from your local machine or an Azure resource as the identity for authentication and authorization.
-
-```csharp
-var configurationOptions = await ConfigurationOptions.Parse($"{_redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
-```
 
 One of the common way for signing into to your Azure account is to use the Azure CLI. Bring up the Command Prompt. Run
 
@@ -41,12 +36,11 @@ For other methods of sign into Azure with Azure CLI, such as using a Service Pri
 
 ### 2. Point to an Azure Cache for Redis instance from local configuration
 
-Create a file on your computer named *CacheSecrets.config* and place it in a location where it won't be checked in with the source code of your sample application. For this quickstart, the *CacheSecrets.config* file is located here, *C:\AppSecrets\CacheSecrets.config*.
-
-Edit the *CacheSecrets.config* file and add the following contents:
+Edit the `Web.config` file and add the following contents:
 
 ```xml
 <appSettings>
+    <!--setting to add for pointing to an Azure Cache for Redis instance-->
     <add key="RedisCacheName" value="<cache-name>.redis.cache.windows.net"/>
 </appSettings>
 ```
@@ -68,7 +62,7 @@ Open **Tools** > **NuGet Package Manager** > **Package Manager Console** and ins
 Install-Package bootstrap -Version 3.4.1
 ```
 
-If the *CacheSecrets.config* file is not located at *C:\AppSecrets\CacheSecrets.config*, open your *web.config* file and update the `appSettings` `file` attribute to the correct path.
+Open your *web.config* file and update the `appSettings` `RedisCacheHome` attribute to the correct path.
 
 In Visual Studio, select **Debug** > **Start Debugging** to build and start the app locally for testing and debugging.
 
