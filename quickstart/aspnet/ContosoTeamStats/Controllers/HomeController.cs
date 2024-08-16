@@ -8,7 +8,7 @@ namespace ContosoTeamStats.Controllers
     public class HomeController : Controller
     {
         // In a real-world application you may want to dependency-inject this connection.
-        private static Task<RedisConnection> _redisConnectionFactory = RedisConnection.InitializeAsync(redisHostName: ConfigurationManager.AppSettings["RedisHostName"].ToString());
+        private static Task<RedisConnection> _redisConnectionFactory = RedisConnection.InitializeAsync(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
         private RedisConnection _redisConnection;
 
         public ActionResult Index()
