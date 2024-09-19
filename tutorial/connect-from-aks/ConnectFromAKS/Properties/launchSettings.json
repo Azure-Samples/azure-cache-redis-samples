@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ConnectFromAKS": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
