@@ -21,7 +21,7 @@ spec:
         cpu: "250m"
     env:
          - name: AUTHENTICATION_TYPE
-           value: "MANAGED_IDENTITY" # change to ACCESS_KEY to authenticate using access key
+           value: "WORKLOAD_IDENTITY" # change to ACCESS_KEY to authenticate using access key
          - name: REDIS_HOSTNAME
            value: "your redis hostname"
          - name: REDIS_ACCESSKEY
