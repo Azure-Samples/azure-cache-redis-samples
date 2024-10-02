@@ -12,7 +12,7 @@ try
     switch (connectionOption)
     {
         case "MANAGED_IDENTITY":
-            WriteLine($"Connecting to {cacheHostName} with managed identity..");
+            WriteLine($"Connecting to {cacheHostName} with workload identity..");
             configurationOptions = await ConfigurationOptions.Parse($"{cacheHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
             configurationOptions.AbortOnConnectFail = false; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
