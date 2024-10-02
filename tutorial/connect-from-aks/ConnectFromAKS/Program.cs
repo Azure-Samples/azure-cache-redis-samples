@@ -2,41 +2,42 @@
 using StackExchange.Redis;
 using static System.Console;
 
-WriteLine("This sample shows how to connect to an Azure Redis cache using managed identity or access keys.");
+WriteLine("This sample shows how to connect to an Azure Redis cache using managed identity (AKS workload identity) or an access key.");
 try
 {
     var connectionOption = Environment.GetEnvironmentVariable("CONNECTION_OPTION");
-    var cacheHostName = Environment.GetEnvironmentVariable("CACHE_HOSTNAME");
+    var redisHostName = Environment.GetEnvironmentVariable("REDIS_HOSTNAME");
     ConfigurationOptions? configurationOptions = null;
 
     switch (connectionOption)
     {
         case "MANAGED_IDENTITY":
-            WriteLine($"Connecting to {cacheHostName} with workload identity..");
-            configurationOptions = await ConfigurationOptions.Parse($"{cacheHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+            WriteLine($"Connecting to {redisHostName} with managed identity..");
+            configurationOptions = await ConfigurationOptions.Parse($"{redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
             configurationOptions.AbortOnConnectFail = false; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
 
         case "ACCESS_KEY":
             WriteLine("Connecting to {cacheHostName} with an access key..");
-            var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
-            configurationOptions = ConfigurationOptions.Parse(connectionString);
+            var redisAccessKey = Environment.GetEnvironmentVariable("REDIS_ACCESSKEY");
+            var redisPort = Environment.GetEnvironmentVariable("REDIS_PORT");
+            configurationOptions = ConfigurationOptions.Parse($"{redisHostName}:{redisPort},password={redisAccessKey},ssl=True,abortConnect=False");
             configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
 
         default:
-            Error.WriteLine("Invalid authentication type!");
+            Error.WriteLine("Invalid connection option!");
             return;
 
     }
 
-    using (ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configurationOptions))
+    using ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
     {
         // Get the database instance
         IDatabase db = redis.GetDatabase();
 
         // Set a key-value pair in Redis
-        var key = "myKey";
+        string key = "myKey";
         string value = "Hello, Redis!";
         await db.StringSetAsync(key, value);
 

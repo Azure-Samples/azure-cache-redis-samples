@@ -8,7 +8,8 @@ spec:
   serviceAccountName: workload-identity-sa
   containers:
   - name: entrademo-container
-    image: youracr.azurecr.io/connect-from-aks-sample:1.0
+    image: aaddemoacr.azurecr.io/connect-from-aks-demo:latest
+
     imagePullPolicy: Always
     command: ["dotnet", "ConnectFromAKS.dll"] 
     resources:
@@ -20,9 +21,11 @@ spec:
         cpu: "250m"
     env:
          - name: CONNECTION_OPTION
-           value: "ACCESS_KEY" #"MANAGED_IDENTITY"
-         - name: CONNECTION_STRING
-           value: "your connection string" 
-         - name: CACHE_HOSTNAME
-           value: "yourcachename.redis.cache.windows.net"
+           value: "MANAGED_IDENTITY"
+         - name: REDIS_HOSTNAME
+           value: "sampleredis.redis.cache.windows.net"
+         - name: REDIS_ACCESSKEY
+           value: "your access key" 
+         - name: REDIS_PORT
+           value: "6380" 
   restartPolicy: Never
