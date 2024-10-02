@@ -25,7 +25,7 @@ try
             break;
 
         default:
-            Error.WriteLine("Invalid connection option!");
+            Error.WriteLine("Invalid authentication type!");
             return;
 
     }
