@@ -5,11 +5,11 @@ using static System.Console;
 WriteLine("This sample shows how to connect to an Azure Redis cache using managed identity (AKS workload identity) or an access key.");
 try
 {
-    var connectionOption = Environment.GetEnvironmentVariable("CONNECTION_OPTION");
+    var authenticationType = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
     var redisHostName = Environment.GetEnvironmentVariable("REDIS_HOSTNAME");
     ConfigurationOptions? configurationOptions = null;
 
-    switch (connectionOption)
+    switch (authenticationType)
     {
         case "MANAGED_IDENTITY":
             WriteLine($"Connecting to {redisHostName} with managed identity..");
@@ -26,7 +26,7 @@ try
             break;
 
         default:
-            Error.WriteLine("Invalid connection option!");
+            Error.WriteLine("Invalid authentication type!");
             return;
 
     }
@@ -37,8 +37,8 @@ try
         IDatabase db = redis.GetDatabase();
 
         // Set a key-value pair in Redis
-        string key = "myKey";
-        string value = "Hello, Redis!";
+        var key = "myKey";
+        var value = "Hello, Redis!";
         await db.StringSetAsync(key, value);
 
         // Retrieve the value from Redis
@@ -51,7 +51,6 @@ try
 }
 catch (Exception ex)
 {
-    WriteLine(ex.Message + ex.StackTrace);
     WriteLine(ex);
 }
 

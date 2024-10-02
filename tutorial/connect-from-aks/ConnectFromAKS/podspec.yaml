@@ -20,10 +20,10 @@ spec:
         memory: "128Mi"
         cpu: "250m"
     env:
-         - name: CONNECTION_OPTION
-           value: "MANAGED_IDENTITY"
+         - name: AUTHENTICATION_TYPE
+           value: "MANAGED_IDENTITY" # change to ACCESS_KEY to authenticate using access key
          - name: REDIS_HOSTNAME
-           value: "sampleredis.redis.cache.windows.net"
+           value: "your redis hostname"
          - name: REDIS_ACCESSKEY
            value: "your access key" 
          - name: REDIS_PORT
