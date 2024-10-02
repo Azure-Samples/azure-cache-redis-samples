@@ -1,4 +1,4 @@
-# Connect to Azure Cache for Redis from your AKS hosted application
+# Connect to Azure Cache for Redis from an application running in AKS
 
 ## Overview
 
