@@ -41,7 +41,7 @@ try
         await db.StringSetAsync(key, value);
 
         // Retrieve the value from Redis
-        string retrievedValue = await db.StringGetAsync(key);
+        var retrievedValue = await db.StringGetAsync(key);
         WriteLine($"Retrieved value from Redis: {retrievedValue}");
 
         // Close the Redis connection
