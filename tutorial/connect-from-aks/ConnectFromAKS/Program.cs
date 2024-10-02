@@ -36,7 +36,7 @@ try
         IDatabase db = redis.GetDatabase();
 
         // Set a key-value pair in Redis
-        string key = "myKey";
+        var key = "myKey";
         string value = "Hello, Redis!";
         await db.StringSetAsync(key, value);
 
