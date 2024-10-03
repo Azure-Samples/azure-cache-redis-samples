@@ -7,20 +7,20 @@ try
 {
     var authenticationType = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
     var redisHostName = Environment.GetEnvironmentVariable("REDIS_HOSTNAME");
+    var redisPort = Environment.GetEnvironmentVariable("REDIS_PORT");
     ConfigurationOptions? configurationOptions = null;
 
     switch (authenticationType)
     {
         case "WORKLOAD_IDENTITY":
             WriteLine($"Connecting to {redisHostName} with workload identity..");
-            configurationOptions = await ConfigurationOptions.Parse($"{redisHostName}:6380").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+            configurationOptions = await ConfigurationOptions.Parse($"{redisHostName}:{redisPort}").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
             configurationOptions.AbortOnConnectFail = false; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
 
         case "ACCESS_KEY":
             WriteLine("Connecting to {cacheHostName} with an access key..");
             var redisAccessKey = Environment.GetEnvironmentVariable("REDIS_ACCESSKEY");
-            var redisPort = Environment.GetEnvironmentVariable("REDIS_PORT");
             configurationOptions = ConfigurationOptions.Parse($"{redisHostName}:{redisPort},password={redisAccessKey},ssl=True,abortConnect=False");
             configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
