@@ -2,7 +2,8 @@
 using StackExchange.Redis;
 using static System.Console;
 
-WriteLine("This sample shows how to connect to an Azure Redis cache using managed identity (AKS workload identity) or an access key.");
+WriteLine("This sample shows how to connect to an Azure Redis cache using an Microsoft Entra identity or an access key. " +
+    "You can also run this sample locally with your user principal configured as a Redis User for your redis instance.");
 try
 {
     var authenticationType = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
@@ -15,7 +16,7 @@ try
         case "WORKLOAD_IDENTITY":
             WriteLine($"Connecting to {redisHostName} with workload identity..");
             configurationOptions = await ConfigurationOptions.Parse($"{redisHostName}:{redisPort}").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
-            configurationOptions.AbortOnConnectFail = false; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
+            configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
             break;
 
         case "ACCESS_KEY":
@@ -28,13 +29,11 @@ try
         default:
             Error.WriteLine("Invalid authentication type!");
             return;
-
     }
 
     using ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
-    {
-        // Get the database instance
-        IDatabase db = redis.GetDatabase();
+        // Get the default database within the Redis cache
+        var db = redis.GetDatabase();
 
         // Set a key-value pair in Redis
         var key = "myKey";
@@ -47,7 +46,6 @@ try
 
         // Close the Redis connection
         redis.Close();
-    }
 }
 catch (Exception ex)
 {
