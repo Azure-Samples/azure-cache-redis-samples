@@ -11,15 +11,16 @@ products:
 ---
 # Quickstart: Use Azure Cache for Redis with an ASP.NET Core web app
 
-This sample shows you how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-web-app-aspnet-core-howto) on the documentation site for details, including best practices and how to create the sample code from scratch.
+This sample shows you how to use an ASP.NET Core web application to connect to Azure Cache for Redis to store and retrieve data from the cache. Microsoft Entra ID is used to authenticate the connection to the Redis cache in Azure. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-web-app-aspnet-core-howto) on the documentation site for details, including best practices and how to create the sample code from scratch.
 
 ## Prerequisites
 
-- Azure subscription - [create one for free](https://azure.microsoft.com/free/)
-- Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
-- [.NET Core SDK](https://dotnet.microsoft.com/download)
+- Azure subscription. [Start free](https://azure.microsoft.com/free)
+- .NET 8 or above. [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Azure Developer CLI. [Install](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd?tabs=winget-windows%2Cbrew-mac%2Cscript-linux&pivots=os-windows)
+- (optional) Visual Studio. [Download](https://visualstudio.microsoft.com/)
 
-## Run the sample
+## Run the sample in Azure
 
 [Download the sample code to your development PC.](/README.md#get-the-samples)
 
@@ -27,31 +28,26 @@ In your command window, change directories to the folder containing this sample.
 
 Execute the following command to restore the packages:
 
-```
-dotnet restore
-```
+1. Login to Azure from your azd command
 
-Execute the following command to store a new secret named *CacheConnection*, after replacing the placeholders (including angle brackets) for your cache name and primary access key:
+    ```
+    azd auth login
+    ```
 
-```
-dotnet user-secrets set CacheConnection "<cache name>.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password=<primary-access-key>"
-```
+2. Provision the Azure resources and deploy your web application
 
-Execute the following command in your command window to build the app:
+    ```
+    azd up
+    ```
 
-```
-dotnet build
-```
-
-Run the app with the following command:
-
-```
-dotnet run
-```
-
-Browse to `https://localhost:5001` in your web browser.
 
 Select **Azure Cache for Redis Test** in the navigation bar of the web page to test cache access.
+
+3. Tear down the resources to stay cost-efficient
+
+    ```
+    azd down
+    ```
 
 ## References
 

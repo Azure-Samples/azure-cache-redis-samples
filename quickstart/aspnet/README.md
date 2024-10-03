@@ -28,11 +28,15 @@ This sample uses Microsoft Entra ID for connecting to an Azure Cache for Redis i
 
 One of the common way for signing into to your Azure account is to use the Azure CLI. Bring up the Command Prompt. Run
 
-```cli
-az login
+```xml
+<appSettings>
+    <add key="CacheConnection" value="<cache-name>.redis.cache.windows.net,abortConnect=false,ssl=true,allowAdmin=true,password=<access-key>"/>
+</appSettings>
 ```
 
-For other methods of sign into Azure with Azure CLI, such as using a Service Principal, see [Sign into Azure with Azure CLI](https://learn.microsoft.com/cli/azure/authenticate-azure-cli)
+Replace `<cache-name>` with your cache host name.
+
+Replace `<access-key>` with the primary key for your cache.
 
 ### 2. Point to an Azure Cache for Redis instance from local configuration
 

@@ -26,7 +26,7 @@ namespace Redistest
 
         static async Task Main(string[] args)
         {
-            _redisConnection = await RedisConnection.InitializeAsync(connectionString: ConfigurationManager.AppSettings["CacheConnection"].ToString());
+            _redisConnection = await RedisConnection.InitializeAsync(redisHostName: ConfigurationManager.AppSettings["RedisHostName"].ToString());
 
             try
             {
