@@ -32,6 +32,7 @@ try
     }
 
     using ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
+
     // Get the default database within the Redis cache
     var db = redis.GetDatabase();
 
