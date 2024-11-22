@@ -1,87 +1,89 @@
-﻿using StackExchange.Redis;
+﻿using Azure.Identity;
+using StackExchange.Redis;
 using System;
 using System.Configuration;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Redistest
+namespace RedisTest
 {
-    class Employee
+    internal class Employee
     {
         public string Id { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
-
-        public Employee(string id, string name, int age)
-        {
-            Id = id;
-            Name = name;
-            Age = age;
-        }
     }
 
-    class Program
+    internal class Program
     {
-        private static RedisConnection _redisConnection;
-
         static async Task Main(string[] args)
         {
-            _redisConnection = await RedisConnection.InitializeAsync(redisHostName: ConfigurationManager.AppSettings["RedisHostName"].ToString());
+            // Connection string should be the cache host name and port e.g. "cachename.redis.azure.net:10000"
+            var connectionString = ConfigurationManager.AppSettings["RedisConnectionString"].ToString();
 
-            try
+            // Connect to the cache using Azure credentials loaded from the current environment. For details see https://learn.microsoft.com/dotnet/azure/sdk/authentication
+            // One approach is to assign yourself to an access policy on the cache (see https://aka.ms/redis/entra-auth), and ensure
+            // that you're logged in with the same account in Visual Studio (see File -> Account Settings...)
+            // For other authentication methods see https://github.com/Azure/Microsoft.Azure.StackExchangeRedis
+            var configurationOptions = await ConfigurationOptions.Parse(connectionString).ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
+            configurationOptions.AbortOnConnectFail = true; // Remove this option for code in production. It makes connections less resilient, but easier to diagnose connection problems while debugging.
+
+            Console.WriteLine($"Connecting to '{connectionString}'...");
+            using (var redisConnection = await ConnectionMultiplexer.ConnectAsync(configurationOptions))
             {
-                // Perform cache operations using the cache object...
-                Console.WriteLine("Running... Press any key to quit.");
+                Console.WriteLine($"Connected successfully!");
+                Console.WriteLine();
 
-                while (!Console.KeyAvailable)
-                {
-                    Task thread1 = Task.Run(() => RunRedisCommandsAsync("Thread 1"));
-                    Task thread2 = Task.Run(() => RunRedisCommandsAsync("Thread 2"));
+                var redis = redisConnection.GetDatabase();
 
-                    Task.WaitAll(thread1, thread2);
-                }
-            }
-            finally
-            {
-                _redisConnection.Dispose();
+                Console.WriteLine("Executing Redis commands on two threads to demonstrate how a single Redis connection can safely multiplex commands from many concurrent threads...");
+                Console.WriteLine();
+
+                var thread1 = RunRedisCommandsAsync("Thread1", redis);
+                var thread2 = RunRedisCommandsAsync("Thread2", redis);
+
+                await Task.WhenAll(thread1, thread2);
             }
         }
 
-        private static async Task RunRedisCommandsAsync(string prefix)
+        private static async Task RunRedisCommandsAsync(string threadName, IDatabase redis)
         {
             // Simple PING command
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: PING");
-            RedisResult pingResult = await _redisConnection.BasicRetryAsync(async (db) => await db.ExecuteAsync("PING"));
-            Console.WriteLine($"{prefix}: Cache response: {pingResult}");
+            Console.WriteLine($"{threadName}: Command: PING \"{threadName}\"");
+            var pingResult = await redis.ExecuteAsync($"PING", new[] { threadName });
+            Console.WriteLine($"{threadName}: PING response: {pingResult}");
 
             // Simple get and put of integral data types into the cache
-            string key = "Message";
-            string value = "Hello! The cache is working from a .NET console app!";
+            string key = threadName;
+            string value = $"Hello from a .NET Framework console app on thread: '{threadName}'!";
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
-            RedisValue getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
-            Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
+            // In production applications, consider using a framework such as Polly (https://github.com/App-vNext/Polly)
+            // to automatically retry commands that may occasionally fail.
+            Console.WriteLine($"{threadName}: Command: GET {key}");
+            Console.WriteLine($"{threadName}: GET response: {await redis.StringGetAsync(key)}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: SET {key} \"{value}\" via StringSetAsync()");
-            bool stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync(key, value));
-            Console.WriteLine($"{prefix}: Cache response: {stringSetResult}");
+            Console.WriteLine($"{threadName}: Command: SET {key} \"{value}\"");
+            Console.WriteLine($"{threadName}: SET response: {await redis.StringSetAsync(key, value)}");
 
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache command: GET {key} via StringGetAsync()");
-            getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync(key));
-            Console.WriteLine($"{prefix}: Cache response: {getMessageResult}");
+            Console.WriteLine($"{threadName}: Command: GET {key}");
+            Console.WriteLine($"{threadName}: GET response: {await redis.StringGetAsync(key)}");
+
+            var employee = new Employee
+            {
+                Id = "007",
+                Name = "Davide Columbo",
+                Age = 100
+            };
 
             // Store serialized object to cache
-            Employee e007 = new Employee("007", "Davide Columbo", 100);
-            stringSetResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringSetAsync("e007", JsonSerializer.Serialize(e007)));
-            Console.WriteLine($"{Environment.NewLine}{prefix}: Cache response from storing serialized Employee object: {stringSetResult}");
+            await redis.StringSetAsync(employee.Id, JsonSerializer.Serialize(employee));
 
             // Retrieve serialized object from cache
-            getMessageResult = await _redisConnection.BasicRetryAsync(async (db) => await db.StringGetAsync("e007"));
-            Employee e007FromCache = JsonSerializer.Deserialize<Employee>(getMessageResult);
-            Console.WriteLine($"{prefix}: Deserialized Employee .NET object:{Environment.NewLine}");
-            Console.WriteLine($"{prefix}: Employee.Name : {e007FromCache.Name}");
-            Console.WriteLine($"{prefix}: Employee.Id   : {e007FromCache.Id}");
-            Console.WriteLine($"{prefix}: Employee.Age  : {e007FromCache.Age}{Environment.NewLine}");
+            var deserializedEmployee = JsonSerializer.Deserialize<Employee>(await redis.StringGetAsync(employee.Id));
+            Console.WriteLine($"{threadName}: Deserialized Employee object properties:");
+            Console.WriteLine($"{threadName}: Employee.Name : {deserializedEmployee.Name}");
+            Console.WriteLine($"{threadName}: Employee.Id   : {deserializedEmployee.Id}");
+            Console.WriteLine($"{threadName}: Employee.Age  : {deserializedEmployee.Age}");
         }
     }
 }
