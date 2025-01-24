@@ -68,7 +68,7 @@ public class App {
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer().setPassword(System.getenv("REDIS_ACCESS_KEY"))
-            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")));
+            .setAddress(String.format("rediss://%s:%s", System.getenv("REDIS_CACHE_HOSTNAME"), System.getenv("REDIS_CACHE_PORT")));
         return redissonconfig;
     }
 
@@ -84,7 +84,7 @@ public class App {
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key
         Config redissonconfig = new Config();
         redissonconfig.useSingleServer()
-            .setAddress(String.format("rediss://%s:6380", System.getenv("REDIS_CACHE_HOSTNAME")))
+            .setAddress(String.format("rediss://%s:%s", System.getenv("REDIS_CACHE_HOSTNAME"), System.getenv("REDIS_CACHE_PORT")))
             .setUsername(System.getenv("REDIS_USER_NAME")) // (Required) Username is Object ID of your managed identity or service principal
             .setPassword(token); // Microsoft Entra access token as password is required.
         return redissonconfig;

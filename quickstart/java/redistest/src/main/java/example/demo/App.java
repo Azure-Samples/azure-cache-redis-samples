@@ -15,9 +15,10 @@ public class App
         boolean useSsl = true;
         String cacheHostname = System.getenv("REDISCACHEHOSTNAME");
         String cachekey = System.getenv("REDISCACHEKEY");
+        int port = Integer.parseInt(System.getenv().getOrDefault("REDIS_CACHE_PORT", "6380"));
 
         // Connect to the Azure Cache for Redis over the TLS/SSL port using the key.
-        Jedis jedis = new Jedis(cacheHostname, 6380, DefaultJedisClientConfig.builder()
+        Jedis jedis = new Jedis(cacheHostname, port, DefaultJedisClientConfig.builder()
             .password(cachekey)
             .ssl(useSsl)
             .build());
