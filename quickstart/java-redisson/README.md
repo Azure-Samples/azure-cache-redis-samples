@@ -25,17 +25,22 @@ Depending on your operating system, add environment variables for your cache's *
 ```CMD
 set REDISCACHEHOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
 set REDISCACHEKEY=<YOUR_PRIMARY_ACCESS_KEY>
+set REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 ```bash
 export REDISCACHEHOSTNAME=<YOUR_HOST_NAME>.redis.cache.windows.net
 export REDISCACHEKEY=<YOUR_PRIMARY_ACCESS_KEY>
+export REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 Replace the placeholders with the following values:
 
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
 - `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key, obtained from the *Access keys* section of your Azure Cache for Redis resource in the Azure portal.
+- `<YOUR_REDIS_PORT>`: The port number, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal. 
+  - The default port number is `6380` for **Azure Cache for Redis**.
+  - The default port number is `10000` for **Azure Managed Redis**.
 
 ## Run the sample
 

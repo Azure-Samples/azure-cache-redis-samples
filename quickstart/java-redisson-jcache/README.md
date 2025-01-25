@@ -28,17 +28,22 @@ Depending on your operating system, add environment variables for your cache's *
 ```CMD
 set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 set REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
+set REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 ```bash
 export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 export REDIS_ACCESS_KEY=<YOUR_PRIMARY_ACCESS_KEY>
+export REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 Replace the placeholders with the following values:
 
 - `<YOUR_HOST_NAME>`: The DNS host name. In the *Settings* section of the Azure Cache for Redis resource in the Azure portal, select *Properties*. Select the copy icon to the right of the *Host name* field.
 - `<YOUR_PRIMARY_ACCESS_KEY>`: The primary access key. In the *Settings* section of the Azure Cache for Redis resource in the Azure portal, select *Authentication*. Select the copy icon to the right of the *Primary* field.
+- `<YOUR_REDIS_PORT>`: The port number, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
+  - The default port number is `6380` for **Azure Cache for Redis**.
+  - The default port number is `10000` for **Azure Managed Redis**.
 
 ### Option 2: Authentication with Microsoft Entra ID
 
@@ -49,11 +54,13 @@ Depending on your operating system, add environment variables for your cache's *
 ```CMD
 set REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 set REDIS_USER_NAME=<REDIS_USER_NAME>
+set REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 ```bash
 export REDIS_CACHE_HOSTNAME=<YOUR_HOST_NAME>
 export REDIS_USER_NAME=<REDIS_USER_NAME>
+export REDIS_CACHE_PORT=<YOUR_REDIS_PORT>
 ```
 
 Replace the placeholders with the following values:
@@ -61,6 +68,9 @@ Replace the placeholders with the following values:
 - `<YOUR_HOST_NAME>`: The DNS host name, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
 - `<REDIS_USER_NAME>`: Object ID of your managed identity or service principal.
   - You can find this value in the "(PREVIEW) Data Access Configuration" view on your cache resource in the Azure Portal. It appears on the "Redis Users" tab, in the "Username" column.
+- `<YOUR_REDIS_PORT>`: The port number, obtained from the *Properties* section of your Azure Cache for Redis resource in the Azure portal.
+  - The default port number is `6380` for **Azure Cache for Redis**.
+  - The default port number is `10000` for **Azure Managed Redis**.
 
 
 It is also possible to use `DefaultAzureCredential` to provide the identity to be used with the Redis connection. For more details, see [Azure authentication with Java and Azure Identity](https://learn.microsoft.com/en-us/azure/developer/java/sdk/identity).
