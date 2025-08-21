@@ -1,0 +1,24 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file .env dist/index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "@azure/identity-broker": "^1.2.0",
+    "@redis/client": "^5.8.1",
+    "@redis/entraid": "^5.8.1",
+    "redis": "^5.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "cross-env": "^10.0.0",
+    "typescript": "^5.9.2"
+  }
+}

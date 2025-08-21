@@ -1,47 +1,46 @@
----
-page_type: sample
-languages:
-- javascript
-- nodejs
-name: 'Quickstart: Use Azure Cache for Redis in Node.js'
-description: Learn how to incorporate Azure Cache for Redis into a Node.js app.
-products:
-- azure
-- azure-cache-redis
----
-# Quickstart: Use Azure Cache for Redis in Node.js
+# Node.js Redis Sample
 
-This sample show you how to incorporate Azure Cache for Redis into a Node.js app. See the [accompanying article](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-nodejs-get-started) on the documentation site for details, including best practices and how to create the sample code from scratch.
+This is a sample application demonstrating how to use Azure Cache for Redis with a Node.js application.
 
 ## Prerequisites
 
-- Azure subscription - [create one for free](https://azure.microsoft.com/free/)
-- Azure Cache for Redis cache - [create one](https://docs.microsoft.com/azure/azure-cache-for-redis/quickstart-create-redis)
-- [node_redis](https://github.com/mranney/node_redis), which you can install with the command `npm install redis`.
+- Node.js LTS
+- Azure subscription
+- Azure Managed Redis instance with appropriate Entra ID permissions
 
-For examples of using other Node.js clients, see the individual documentation for the Node.js clients listed at [Node.js Redis clients](https://redis.io/clients#nodejs).
+## Getting Started
 
-## Set up the working environment
+1. Clone the repository:
 
-Add environment variables for your cache's **HOST NAME** and **Primary** access key. You will use these variables from your code instead of including the sensitive information directly in your code.
+   ```bash
+   git clone https://github.com/Azure-Samples/azure-cache-redis-samples.git
+   cd azure-cache-redis-samples/quickstart/nodejs
+   ```
 
-```
-set AZURE_CACHE_FOR_REDIS_HOST_NAME=contosoCache.redis.cache.windows.net
-set AZURE_CACHE_FOR_REDIS_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
+2. Install dependencies:
 
-## Run the sample
+   ```bash
+   cd quickstart/nodejs
+   npm install
+   ```
 
-[Download the sample code to your development PC.](/README.md#get-the-samples)
+3. Copy `sample.env` to a `.env` file and add your Azure Cache for Redis endpoint:
 
-Change directories to the folder containing this sample.
+   ```env
+   AZURE_MANAGED_REDIS_HOST_NAME="rediss://<RESOURCE_ENDPOINT>:10000"
+   ```
 
-Run the script with Node.js.
+4. Build and run the application:
 
-```
-node redistest.js
-```
+   ```bash
+   npm run build && npm start
+   ```
 
-## References
+5. Review results:
 
-* [Quickstart article on the documentation site](https://docs.microsoft.com/azure/azure-cache-for-redis/cache-nodejs-get-started)
+    ```console
+    Ping result: PONG
+    Set result: OK
+    Get result: Hello! The cache is working from Node.js!
+    ```
+

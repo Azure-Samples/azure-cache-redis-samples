@@ -23,3 +23,7 @@ packages
 *.css
 *.map
 *.scss
+
+node_modules/
+dist/
+.env
