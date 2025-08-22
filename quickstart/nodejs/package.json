@@ -11,7 +11,6 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
-    "@azure/identity-broker": "^1.2.0",
     "@redis/client": "^5.8.1",
     "@redis/entraid": "^5.8.1",
     "redis": "^5.8.1"
