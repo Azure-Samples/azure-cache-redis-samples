@@ -40,21 +40,6 @@ function getClient() {
     return client;
 }
 
-async function safeQuit(client: any) {
-    if (!client) return;
-    try {
-        if (typeof client.quit === 'function') {
-            await client.quit();
-        } else if (typeof client.close === 'function') {
-            await client.close();
-        } else if (typeof client.disconnect === 'function') {
-            client.disconnect();
-        }
-    } catch (err) {
-        console.warn('Error while closing Redis client:', err);
-    }
-}
-
 const client = getClient();
 
 try {
@@ -73,6 +58,6 @@ try {
 } catch (err) {
     console.error('Error closing Redis client:', err);
 } finally {
-    await safeQuit(client);
+    await client.close();
 }
 
