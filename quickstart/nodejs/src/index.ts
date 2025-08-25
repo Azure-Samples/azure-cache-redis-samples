@@ -4,7 +4,7 @@ import { createClient } from '@redis/client';
 
 const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
 if (!resourceEndpoint) {
-    console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: rediss://YOUR-RESOURCE_NAME.redis.cache.windows.net:<YOUR-RESOURCE-PORT>. Find the endpoint in the Azure portal.');
+    console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: `cache-name.region-name.redis.azure.net:10000`. Find the endpoint in the Azure portal.');
     process.exit(1);
 }
 
@@ -28,7 +28,7 @@ try {
         });
 
         const client = createClient({
-            url: resourceEndpoint,
+            url: `rediss://${resourceEndpoint}`,
             credentialsProvider: provider,
             socket: {
                 reconnectStrategy:() => new Error('Failure to connect'),
