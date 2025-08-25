@@ -5,40 +5,42 @@ import { createClient } from '@redis/client';
 const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
 if (!resourceEndpoint) {
     console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: rediss://YOUR-RESOURCE_NAME.redis.cache.windows.net:<YOUR-RESOURCE-PORT>. Find the endpoint in the Azure portal.');
+    process.exit(1);
 }
 
-function getClient() {
-
-    if (!resourceEndpoint) throw new Error('AZURE_MANAGED_REDIS_HOST_NAME must be set');
-
-    const credential = new DefaultAzureCredential();
-
-    const provider = EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
-        credential,
-        scopes: REDIS_SCOPE_DEFAULT,
-        options: {},
-        tokenManagerConfig: {
-            expirationRefreshRatio: 0.8
-        }
-    });
-
-    const client = createClient({
-        url: resourceEndpoint,
-        credentialsProvider: provider,
-        socket: {
-            reconnectStrategy: (retries) => Math.min(100 + retries * 50, 2000)
-        }
-
-    });
-
-    client.on('error', (err) => console.error('Redis client error:', err));
-
-    return client;
-}
-
-const client = getClient();
+let client;
 
 try {
+
+    function getClient() {
+
+        if (!resourceEndpoint) throw new Error('AZURE_MANAGED_REDIS_HOST_NAME must be set');
+
+        const credential = new DefaultAzureCredential();
+
+        const provider = EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
+            credential,
+            scopes: REDIS_SCOPE_DEFAULT,
+            options: {},
+            tokenManagerConfig: {
+                expirationRefreshRatio: 0.8
+            }
+        });
+
+        const client = createClient({
+            url: resourceEndpoint,
+            credentialsProvider: provider,
+            socket: {
+                reconnectStrategy:() => new Error('Failure to connect'),
+                timeout: 500
+            }
+        });
+
+        client.on('error', (err) => console.error('Redis client error:', err));
+
+        return client;
+    }
+    client = getClient();
 
     await client.connect();
 
@@ -52,7 +54,13 @@ try {
     console.log('Get result:', getResult);
 
 } catch (err) {
-    console.error('Error closing Redis client:', err);
+    console.error('Error:', err);
 } finally {
-    await client.quit();
+    if (client) {
+        try {
+            await client.quit();
+        } catch (quitErr) {
+            console.error('Failed to quit client:', quitErr);
+        }
+    }
 }
