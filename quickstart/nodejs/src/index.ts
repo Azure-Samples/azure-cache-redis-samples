@@ -32,7 +32,7 @@ try {
             credentialsProvider: provider,
             socket: {
                 reconnectStrategy:() => new Error('Failure to connect'),
-                timeout: 500
+                timeout: 15000
             }
         });
 
