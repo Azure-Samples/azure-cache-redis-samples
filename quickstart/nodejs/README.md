@@ -1,6 +1,6 @@
 # Node.js Redis Sample
 
-This is a sample application demonstrating how to use Azure Cache for Redis with a Node.js application.
+This is a sample application demonstrating how to use Azure Managed Redis with a Node.js application.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ This is a sample application demonstrating how to use Azure Cache for Redis with
    npm install
    ```
 
-3. Copy `sample.env` to a `.env` file and add your Azure Cache for Redis endpoint:
+3. Copy `sample.env` to a `.env` file and add your Azure Managed Redis endpoint:
 
    ```env
    AZURE_MANAGED_REDIS_HOST_NAME="rediss://<RESOURCE_ENDPOINT>:10000"

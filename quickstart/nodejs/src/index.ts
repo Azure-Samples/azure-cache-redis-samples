@@ -1,4 +1,3 @@
-
 import { DefaultAzureCredential } from '@azure/identity';
 import { EntraIdCredentialsProviderFactory, REDIS_SCOPE_DEFAULT } from '@redis/entraid';
 import { createClient } from '@redis/client';
