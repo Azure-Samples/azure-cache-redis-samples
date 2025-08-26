@@ -6,7 +6,8 @@ This is a sample application demonstrating how to use Azure Managed Redis with a
 
 - Node.js LTS
 - Azure subscription
-- Azure Managed Redis instance with appropriate Entra ID permissions
+- Azure Managed Redis instance with Entra ID authentication enabled and appropriate data access policy assignments
+
 
 ## Getting Started
 

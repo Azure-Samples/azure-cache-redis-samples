@@ -38,7 +38,8 @@ try {
                 credentialsProvider: provider,
                 socket: { 
                     connectTimeout: 15000, 
-                    reconnectStrategy:() => new Error('Failure to connect'), 
+                    reconnectStrategy:() => new Error('Failure to connect'), // Fail connection immediately if an error occurs. This reduces resilience, and should not be used in production code.
+
                     tls: true
                 }
 
