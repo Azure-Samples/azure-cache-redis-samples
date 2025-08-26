@@ -11,9 +11,9 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
-    "@redis/client": "^5.8.1",
-    "@redis/entraid": "^5.8.1",
-    "redis": "^5.8.1"
+    "@redis/client": "^5",
+    "@redis/entraid": "^5",
+    "redis": "^5"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

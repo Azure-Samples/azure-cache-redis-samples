@@ -1,6 +1,6 @@
 import { DefaultAzureCredential } from '@azure/identity';
 import { EntraIdCredentialsProviderFactory, REDIS_SCOPE_DEFAULT } from '@redis/entraid';
-import { createClient } from '@redis/client';
+import { createCluster } from '@redis/client';
 
 const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
 if (!resourceEndpoint) {
@@ -29,18 +29,20 @@ try {
             }
         });
 
-        const client = createClient({
-            url: endpointUrl,
+        const cluster = createCluster({
+        rootNodes: [{ url: endpointUrl }],
+        defaults: {
             credentialsProvider: provider,
-            socket: {
+            socket: { 
                 reconnectStrategy:() => new Error('Failure to connect'),
-                timeout: 15000
+                connectTimeout: 15000 
             }
+        }
         });
 
-        client.on('error', (err) => console.error('Redis client error:', err));
-
-        return client;
+        
+        cluster.on('error', (err) => console.error('Redis cluster error:', err));
+        return cluster;
     }
     client = getClient();
 
