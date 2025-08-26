@@ -1,15 +1,18 @@
 import { DefaultAzureCredential } from '@azure/identity';
 import { EntraIdCredentialsProviderFactory, REDIS_SCOPE_DEFAULT } from '@redis/entraid';
 import { createCluster } from '@redis/client';
+import * as net from 'node:net';
 
 const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
 if (!resourceEndpoint) {
     console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: `cache-name.region-name.redis.azure.net:10000`. Find the endpoint in the Azure portal.');
     process.exit(1);
 }
+// Azure Managed Redis default port
+const resourcePort = 10000
 
 let client;
-let endpointUrl = `rediss://${resourceEndpoint}`;
+let endpointUrl = `rediss://${resourceEndpoint}:${resourcePort}`;
 console.log('Using Redis endpoint:', endpointUrl);
 
 try {
@@ -36,12 +39,27 @@ try {
                 socket: { 
                     connectTimeout: 15000, 
                     reconnectStrategy:() => new Error('Failure to connect'), 
-                    // The following 2 properties are required for Azure Managed Redis
-                    tls: true,
-                    rejectUnauthorized: false  
-                    
+                    tls: true
                 }
+
+            }, 
+            nodeAddressMap(address) {
+                const [hostName, port] = address.split(":");
+
+                // On Azure Managed Redis the nodes have the same host, only the port is dynamic
+                // so if the address is an IP and we are using TLS we will use the redisHost instead to allow certificate
+                // validation, otherwise we use the address provided by the discovered cluster topology
+                const host =
+                    net.isIP(hostName) !== 0
+                    ? resourceEndpoint
+                    : hostName;
+
+                return {
+                    host,
+                    port: Number(port),
+                };
             }
+            
         });
 
         client.on('error', (err) => console.error('Redis cluster error:', err));
@@ -73,19 +91,3 @@ try {
         }
     }
 }
-/*
-Client error: 
-Using Redis endpoint: rediss://diberry-managed-redis.eastus2.redis.azure.net:10000
-Ping result: PONG
-Error: SimpleError: MOVED 999 4.150.65.49:8501
-    at #decodeSimpleError (/workspaces/azure-cache-redis-samples/quickstart/nodejs/node_modules/@redis/client/dist/lib/RESP/decoder.js:459:13)
-    at #decodeTypeValue (/workspaces/azure-cache-redis-samples/quickstart/nodejs/node_modules/@redis/client/dist/lib/RESP/decoder.js:104:91)
-    at Decoder.write (/workspaces/azure-cache-redis-samples/quickstart/nodejs/node_modules/@redis/client/dist/lib/RESP/decoder.js:74:38)
-    at RedisSocket.<anonymous> (/workspaces/azure-cache-redis-samples/quickstart/nodejs/node_modules/@redis/client/dist/lib/client/index.js:399:37)
-    at RedisSocket.emit (node:events:518:28)
-    at TLSSocket.<anonymous> (/workspaces/azure-cache-redis-samples/quickstart/nodejs/node_modules/@redis/client/dist/lib/client/socket.js:205:38)
-    at TLSSocket.emit (node:events:518:28)
-    at addChunk (node:internal/streams/readable:561:12)
-    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
-    at Readable.push (node:internal/streams/readable:392:5)
-*/
