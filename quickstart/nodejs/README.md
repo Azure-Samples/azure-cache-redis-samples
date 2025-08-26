@@ -27,7 +27,7 @@ This is a sample application demonstrating how to use Azure Managed Redis with a
 3. Copy `sample.env` to a `.env` file and add your Azure Managed Redis endpoint:
 
    ```env
-   AZURE_MANAGED_REDIS_ENDPOINT="rediss://<RESOURCE_HOST_NAME>:10000"
+   AZURE_MANAGED_REDIS_ENDPOINT="rediss://<RESOURCE_HOST_NAME>"
    ```
 
 4. Build and run the application:
