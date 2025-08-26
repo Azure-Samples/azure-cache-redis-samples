@@ -9,6 +9,8 @@ if (!resourceEndpoint) {
 }
 
 let client;
+let endpointUrl = `rediss://${resourceEndpoint}`;
+console.log('Using Redis endpoint:', endpointUrl);
 
 try {
 
@@ -28,7 +30,7 @@ try {
         });
 
         const client = createClient({
-            url: `rediss://${resourceEndpoint}`,
+            url: endpointUrl,
             credentialsProvider: provider,
             socket: {
                 reconnectStrategy:() => new Error('Failure to connect'),
