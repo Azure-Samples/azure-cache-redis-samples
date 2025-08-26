@@ -5,7 +5,7 @@ import * as net from 'node:net';
 
 const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
 if (!resourceEndpoint) {
-    console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: `cache-name.region-name.redis.azure.net:10000`. Find the endpoint in the Azure portal.');
+    console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: `cache-name.region-name.redis.azure.net`. Find the endpoint in the Azure portal. Do not include the port.');
     process.exit(1);
 }
 // Azure Managed Redis default port
