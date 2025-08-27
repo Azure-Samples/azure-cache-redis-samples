@@ -80,7 +80,8 @@ try {
         try {
             await client.quit();
         } catch (quitErr) {
-            console.error('Failed to quit client:', quitErr);
+            console.error('Error occurred while quitting Redis client:', quitErr);
+
         }
     }
 }
