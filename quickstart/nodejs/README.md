@@ -27,9 +27,8 @@ This is a sample application demonstrating how to use Azure Managed Redis with a
 
 3. Copy `sample.env` to a `.env` file and add your Azure Managed Redis endpoint. This endpoint can be found in the Azure portal. It includes the port:
 
-   ```env
-   REDIS_ENDPOINT="redis-host-with-port"
-
+   ```ini
+   REDIS_ENDPOINT=<redis-host-with-port>
    ```
 
 4. Build and run the application:
@@ -46,3 +45,4 @@ This is a sample application demonstrating how to use Azure Managed Redis with a
     Get result: Hello! The cache is working from Node.js!
     ```
 
+**Note**: This quickstart code uses a fail fast `reconnectStrategy` which is suitable only in sample code. The purpose is to quickly demonstrate the functionality without getting stuck in reconnection loops if your endpoint or authentication is not correctly configured. In production code, a more robust `reconnectStrategy` should be implemented.

@@ -32,8 +32,15 @@ function createRedisClient(): RedisClusterType<RedisModules, RedisFunctions, Red
             credentialsProvider: provider,
             socket: {
                 connectTimeout: 15000,
-                reconnectStrategy: () => new Error('Failure to connect'),
-                tls: true
+                tls: true,
+
+                // This quickstart code uses a fail fast `reconnectStrategy` which
+                // is suitable only in sample code. The purpose is to quickly
+                // demonstrate the functionality without getting stuck in
+                // reconnection loops if your endpoint or authentication is not
+                // correctly configured. In production code, a more robust
+                // `reconnectStrategy` should be implemented.
+                reconnectStrategy: () => new Error('Failure to connect')
             }
 
         },
