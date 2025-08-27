@@ -1,74 +1,66 @@
 import { DefaultAzureCredential } from '@azure/identity';
 import { EntraIdCredentialsProviderFactory, REDIS_SCOPE_DEFAULT } from '@redis/entraid';
-import { createCluster } from '@redis/client';
+import { createCluster, RedisClusterType, RedisModules, RedisFunctions, RedisScripts } from '@redis/client';
 import * as net from 'node:net';
 
-const resourceEndpoint = process.env.AZURE_MANAGED_REDIS_HOST_NAME!;
-if (!resourceEndpoint) {
-    console.error('AZURE_MANAGED_REDIS_HOST_NAME is not set. It should look like: `cache-name.region-name.redis.azure.net`. Find the endpoint in the Azure portal. Do not include the port.');
+const redisEndpoint = process.env.REDIS_ENDPOINT!;
+if (!redisEndpoint) {
+    console.error('REDIS_ENDPOINT is not set. It should look like: `cache-name.region-name.redis.azure.net:<PORT>`. Find the endpoint in the Azure portal.');
     process.exit(1);
 }
-// Azure Managed Redis default port
-const resourcePort = 10000
+
+const [redisHostName, _] = redisEndpoint.split(":");
 
 let client;
-let endpointUrl = `rediss://${resourceEndpoint}:${resourcePort}`;
-console.log('Using Redis endpoint:', endpointUrl);
+
+function createConnection(): RedisClusterType<RedisModules, RedisFunctions, RedisScripts>  {
+
+    const credential = new DefaultAzureCredential();
+
+    const provider = EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
+        credential,
+        scopes: REDIS_SCOPE_DEFAULT,
+        options: {},
+        tokenManagerConfig: {
+            expirationRefreshRatio: 0.8
+        }
+    });
+
+    const client = createCluster<RedisModules, RedisFunctions, RedisScripts>({
+        rootNodes: [{ url: `rediss://${redisEndpoint}` }],
+        defaults: {
+            credentialsProvider: provider,
+            socket: {
+                connectTimeout: 15000,
+                reconnectStrategy: () => new Error('Failure to connect'),
+                tls: true
+            }
+
+        },
+        nodeAddressMap(incomingAddress) {
+            const [hostNameOrIP, port] = incomingAddress.split(":");
+
+            const address =
+                net.isIP(hostNameOrIP) !== 0
+                    ? redisHostName
+                    : hostNameOrIP;
+
+            return {
+                host: address,
+                port: Number(port),
+            };
+        }
+
+    });
+
+    client.on('error', (err) => console.error('Redis cluster error:', err));
+
+    return client;
+}
 
 try {
 
-    function getCluster() {
-
-        if (!endpointUrl) throw new Error('AZURE_MANAGED_REDIS_HOST_NAME must be set');
-
-        const credential = new DefaultAzureCredential();
-
-        const provider = EntraIdCredentialsProviderFactory.createForDefaultAzureCredential({
-            credential,
-            scopes: REDIS_SCOPE_DEFAULT,
-            options: {},
-            tokenManagerConfig: {
-                expirationRefreshRatio: 0.8
-            }
-        });
-
-        const client = createCluster({
-            rootNodes: [{ url: endpointUrl }],
-            defaults: {
-                credentialsProvider: provider,
-                socket: { 
-                    connectTimeout: 15000, 
-                    reconnectStrategy:() => new Error('Failure to connect'), // Fail connection immediately if an error occurs. This reduces resilience, and should not be used in production code.
-
-                    tls: true
-                }
-
-            }, 
-            nodeAddressMap(address) {
-                const [hostName, port] = address.split(":");
-
-                // On Azure Managed Redis the nodes have the same host, only the port is dynamic
-                // so if the address is an IP and we are using TLS we will use the redisHost instead to allow certificate
-                // validation, otherwise we use the address provided by the discovered cluster topology
-                const host =
-                    net.isIP(hostName) !== 0
-                    ? resourceEndpoint
-                    : hostName;
-
-                return {
-                    host,
-                    port: Number(port),
-                };
-            }
-            
-        });
-
-        client.on('error', (err) => console.error('Redis cluster error:', err));
-
-        return client;
-    }
-
-    client = getCluster();
+    client = createConnection();
 
     await client.connect();
 
