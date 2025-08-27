@@ -13,7 +13,7 @@ const [redisHostName, _] = redisEndpoint.split(":");
 
 let client;
 
-function createConnection(): RedisClusterType<RedisModules, RedisFunctions, RedisScripts>  {
+function createRedisClient(): RedisClusterType<RedisModules, RedisFunctions, RedisScripts>  {
 
     const credential = new DefaultAzureCredential();
 
@@ -60,7 +60,7 @@ function createConnection(): RedisClusterType<RedisModules, RedisFunctions, Redi
 
 try {
 
-    client = createConnection();
+    client = createRedisClient();
 
     await client.connect();
 
