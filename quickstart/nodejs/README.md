@@ -25,10 +25,10 @@ This is a sample application demonstrating how to use Azure Managed Redis with a
    npm install
    ```
 
-3. Copy `sample.env` to a `.env` file and add your Azure Managed Redis endpoint:
+3. Copy `sample.env` to a `.env` file and add your Azure Managed Redis endpoint. This endpoint can be found in the Azure portal. It includes the port:
 
    ```env
-   AZURE_MANAGED_REDIS_ENDPOINT="<REDIS_HOST_NAME>:<PORT>"
+   REDIS_ENDPOINT="redis-host-with-port"
 
    ```
 
