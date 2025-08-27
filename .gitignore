@@ -19,7 +19,11 @@ packages
 
 ; Web Files
 *.js
-!quickstart/nodejs/redistest.js
+!quickstart/nodejs/**/*.js
 *.css
 *.map
 *.scss
+
+node_modules/
+dist/
+.env
