@@ -17,6 +17,7 @@ try
             WriteLine($"Connecting to {redisHostName} with workload identity..");
             configurationOptions = await ConfigurationOptions.Parse($"{redisHostName}:{redisPort}").ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
             configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
+            configurationOptions.Ssl = true;
             break;
 
         case "ACCESS_KEY":
@@ -24,6 +25,7 @@ try
             var redisAccessKey = Environment.GetEnvironmentVariable("REDIS_ACCESSKEY");
             configurationOptions = ConfigurationOptions.Parse($"{redisHostName}:{redisPort},password={redisAccessKey}");
             configurationOptions.AbortOnConnectFail = true; // Fail fast for the purposes of this sample. In production code, this should remain false to retry connections on startup
+            configurationOptions.Ssl = true;
             break;
 
         default:
