@@ -14,7 +14,6 @@ name: Azure Cache for Redis samples
 description: Learn how to use Azure Cache for Redis to have access to a secure, dedicated cache that is accessible from any application within Azure.
 products:
 - azure
-- aspnet
 - aspnet-core
 - dotnet
 - azure-cache-redis
