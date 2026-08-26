@@ -2,6 +2,7 @@
 using Azure;
 using Redis.OM;
 using Redis.OM.Vectorizers;
+using System.Text.Encodings.Web;
 
 namespace OutputCacheDallESample
 {
@@ -35,8 +36,9 @@ namespace OutputCacheDallESample
                 if (cache.GetSimilar(_prompt).Length > 0)
                 {
                     imageURL = cache.GetSimilar(_prompt)[0];
+                    context.Response.ContentType = "text/html; charset=utf-8";
                     await context.Response.WriteAsync("<!DOCTYPE html><html><body> " +
-                                                      $"<img src=\"{imageURL}\" alt=\"AI Generated Picture {_prompt}\" width=\"460\" height=\"345\">" +
+                                                      $"<img src=\"{HtmlEncoder.Default.Encode(imageURL)}\" alt=\"AI Generated Picture {HtmlEncoder.Default.Encode(_prompt)}\" width=\"460\" height=\"345\">" +
                                                       " </body> </html>");
                 }
                 else
@@ -55,8 +57,9 @@ namespace OutputCacheDallESample
 
                     await cache.StoreAsync(_prompt, imageURL);
 
+                    context.Response.ContentType = "text/html; charset=utf-8";
                     await context.Response.WriteAsync("<!DOCTYPE html><html><body> " +
-                    $"<img src=\"{imageURL}\" alt=\"AI Generated Picture {_prompt}\" width=\"460\" height=\"345\">" +
+                    $"<img src=\"{HtmlEncoder.Default.Encode(imageURL)}\" alt=\"AI Generated Picture {HtmlEncoder.Default.Encode(_prompt)}\" width=\"460\" height=\"345\">" +
                     " </body> </html>");
                 }
             }            
